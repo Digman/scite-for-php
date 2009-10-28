@@ -517,8 +517,8 @@ function View_In_Localhost()
     if this_path ~= nil and  props['browser.path'] ~= nil then
         --local shellcmd = "\""..props['browser.path'].."\" "..this_path
         local rs,info=shell.exec(this_path) 
---[[         if(rs ~= true) then
+	  if(rs ~= true) then
             print(shellcmd,info)
-        end ]]
+        end 
     end
 end
