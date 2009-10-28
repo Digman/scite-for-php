@@ -1,0 +1,173 @@
+﻿常用的玩意
+===============
+
+// 去除行尾
+ret = string.gsub(str, '[\r\n]+$', '')
+
+
+
+语言
+===============
+
+{ a } ：a 的 0 次或 多次出现
+[ a ] ：a 的 0 次或 一次出现
+
+跟 JavaScript 一样，Lua 有精华，也有糟粕
+
+  原型继承
+  闭包
+
+2.1、词法规则
+
+  关键字(and,break,do,else,...)
+  操作符(+,-,*,/,==,~=,[,],...)
+  字面值('a',3,2.4,"world",...)
+
+2.2、值和类型
+
+  [object] 模型
+
+         引用
+    名字 ----> 内存
+              (类型)
+
+  所有的值都是 first-class value
+  基本类型：
+
+    nil
+      nil
+    boolean
+      true
+      false
+    number
+      整数
+      实数
+    string
+      字符的序列
+    table [object]
+      有向图？类似 PHP 的 array() ？key可以为任意值(除了nil)
+      创建：
+        diogin = { ['age'] = 27, ['sleep'] = function (this) print(this['age']) end }
+      语法糖：
+        diogin.age 等价于 diogin['age']
+        diogin:sleep 等价于 diogin.sleep(diogin)，或 diogin['sleep'](diogin)
+    userdata [object]
+      资源(不能在Lua脚本里创建或修改，只能通过 C API)
+    function [object]
+      闭包
+    thread [object]
+
+  调试类型：
+
+    type(variable)
+
+  强制转换：
+
+    数字与字符串
+
+2.3、变量
+
+  三种变量域
+    global
+    local
+    table fields
+
+  变量的文法
+    Name 就是名字，或者说标识符
+    var ::= Name
+    方括号用来索引一个 table：
+      var ::= prefixexp `[` exp `]`
+      var ::= prefixexp `.` Name
+
+  除非明确加上 local，否则任何变量都当成 global
+  local 变量基于词法域
+  未赋值的变量，值为 nil
+  访问全局变量和 table 域的含义，可以通过修改元表来改变
+    t[i] 等价于 gettable_event(t, i)
+    t[i] = val 等价于 settable_event(t, i, val)
+
+  每个函数都引用一个环境表，所有的 global 变量都在该环境表里查找
+  当一个函数被创建时，它继承创建它的函数的环境表
+  获得函数的环境表，使用 getfenv 函数；替换它，使用 setfenv 函数
+  函数内访问全局变量 x 等效于
+    _env.x
+    _env.x = val
+  或
+    gettable_event(_env, 'x')
+    settable_event(_env, 'x', val)
+  _env 是函数的环境表，_env、gettable_event 都是伪代码
+
+2.4、语句
+
+  赋值
+  控制结构
+  函数调用
+  变量声明
+
+  chunk ::= { stat }
+  block ::= chunk
+  stat ::= do block end
+  stat ::= varlist `=` explist
+    varlist ::= var {`,` var}
+    explist ::= exp {`,` exp}
+
+  没有空语句
+
+  一个 chunk 就是一个匿名函数执行体，可以定义 local 变量，接收参数，返回值
+
+  chunk 跟 Python 的 CodeObject 类似，可以为 opcode 格式，也可以为代码格式，解释器都接受
+
+  return 和 break 必须跟上 end，也就是说必须是一个 block 的最后一条语句
+
+  控制结构：
+
+    stat ::= while exp do block end
+    stat ::= repeat block until exp
+    stat ::= if exp then block { elseif exp then block } [ else block ] end
+    stat ::= return [ explist ]
+    stat ::= break
+    stat ::= for Name `=` exp `,` exp [`,` exp] do block end
+    泛型 for
+      stat ::= for namelist in explist do block end
+      namelist ::= Name {`,` Name}
+
+  函数调用：
+
+    stat ::= functioncall
+
+  变量声明：
+
+    stat ::= local namelist [`=` explist]
+
+    多值就像 Python 的 tuple
+
+2.5、表达式
+
+  比较：==
+    table, function, userdata, thread 按引用比较
+    nil, boolean, number, string 按值比较
+    table 和 userdata 的比较可以修改 eq 元方法来定制
+  '0' != 0
+  t[0] != t['0']
+
+  function a.b.c:f(params) body end
+  等价于
+  a.b.c.f = function (self, params) body end
+
+  local diogin = { ['name'] = 'diogin' }
+  function diogin:f()
+      print(self['name'])
+  end
+  function diogin.g(self)
+      print(self.name)
+  end
+  diogin:f()
+  diogin:g()
+
+2.8、元表
+
+  Lua 里每个值都有一个元表
+
+
+
+

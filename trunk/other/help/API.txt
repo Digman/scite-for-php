@@ -1,0 +1,144 @@
+﻿原则：
+
+  能不动 scite/scintilla 的源代码就尽量不要动，扩展功能都用 lua 来完成。
+
+
++-------------------------------------------+
+|                                           |
+|              用户------------+-------+    |
+|               |              |       |    |
++---------------|--------+-----v----+--+----+
+|               |  +---->| 配置参数 |  |    |
+|               v  |     +-----+-^--+  v    |
+|                  |           | |          |
+|  +--------扩展功能-------+   | |   默     |
+|  |            |          |   | +--        |
++--v--+         |      +---v---+            |
+| Lua |         |      | SciTE |     认     |
+| API |         |      |  API  |            |
++-----+---------+------+---+---+            |
+|               |          |   |     功     |
+|               v          v   |            |
+|           Scintilla        <-+----        |
+|              API             |     能     |
+|                              |            |
++------------------------------+------------+
+
+         SciTE 文本编辑器体系结构
+
+SciTE API:
+
+  scite.MenuCommand(IDM...)
+
+Scintilla API:
+
+  scite.SendEditor(SCI...)
+  scite.SendOutput(SCI...)
+
+scite:
+
+  SendEditor
+  UpdateStatusBar
+  ConstantName
+  MenuCommand
+  Open
+  SendOutput
+
+event:
+
+  OnOpen(filename)
+  OnClose(filename)
+  OnSwitchFile(filename)
+  OnSave(filename)
+  OnBeforeSave(filename)
+  OnChar(char)
+  OnKey(key, shift, ctrl, alt)
+  OnSavePointReached()
+  OnSavePointLeft()
+  OnDwellStart(?)
+  OnDoubleClick()
+  OnMarginClick()
+  OnUserListSelection(listType, text)
+
+缩进
+====
+
+# 给 line 设置缩进值 indentation
+SCI_SETLINEINDENTATION(int line, int indentation)
+# 获取 line 的缩进值
+SCI_GETLINEINDENTATION(int line)
+# line 的缩进的最后一个位置
+SCI_GETLINEINDENTPOSITION(int line)
+
+交互式窗体控件！！！
+===================
+
+ 弹出一个菜单让用户选择：
+
+  editor:UserListShow(listType, textList)
+  function OnUserListSelection(type, text)
+
+ 弹出一个窗口让用户输入：
+
+  View -> Parameters
+
+
+常用的玩意
+================
+
+光标
+ |
+ v
+ +-+-+-+-+-+-+
+ |0|1|2|3|4|5|
+ +/+/+/+/+/+/+
+ 0 1 2 3 4 5
+位置
+
+
+
+选择：从 anchor 到 position
+
+
+line     从 0 开始（第一行）
+position 从 0 开始（没有字符时，光标处在 0 处），-1 代表当前位置
+
+editor:GetText()     全文获取
+editor:SetText(s)    全文设置
+editor:ClearAll( )   清除全文
+editor:AppendText(s) 在全文末尾添加 s
+editor:GetLine(n)    获取第 n 行，包括行尾
+editor:GetSelText()  获取选中的文本
+editor.Length        全文总字节数
+editor.LineCount     总行数
+editor.CharAt[pos]   某个位置处的字节的数值(string.byte, 用 string.char 变成字符)
+editor:textrange(begin, end) 获取 begin 到 end 位置的文本（不包括 end！！！！）
+  editor.CharAt[pos] == editor:textrange(pos, pos + 1)
+editor:InsertText(pos, s) 在 pos 处添加 s
+editor:ReplaceSel(s) 替换选择处的文本为 s
+editor:GotoPos(pos)
+editor:GotoLine(line)
+editor:SetSel(begin, end) （不包括 end！！！！）
+editor:LineFromPosition(pos) 获取 pos 位置所在的行的文本
+editor:PositionFromLine(line) 获取行首字符的位置
+editor:LineEndPosition[line]  获取行尾字符的位置
+
+
+$(1) $(2) $(3) $(4)，四个参数，在 view -> parameters 里设置，之后便可对 props 可见
+
+全部玩意
+================
+
+1. 事件 API
+2. editor 对象、output 对象（均为 userdata）
+    textrange(startPos, endPos)
+    remove(startPos, endPos)
+3. props 伪表（userdata）
+4. scite 对象（table）
+    Open(filename)
+    SendEditor(SCI_constant, ...)
+    ConstantName(number)
+    MenuCommand(IDM_constant)
+5. Sintilla.iface 里的常量、函数(挂到 pane 上做为方法)
+6. Lua API
+

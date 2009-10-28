@@ -1,0 +1,3 @@
+fi=from | import 
+cls=class |:\n    
+def=def |():\n    

@@ -1,0 +1,7 @@
+﻿* 自动探测 buffer 内的文本编码（主要是 gbk 和 utf-8），并设置合适的 code.page 和 character.set
+* 定制自动补全菜单的样式、Call Tip 菜单的样式
+* Alt+W, Alt+Z 实现滚屏（同时光标一直在中间，自带的滚屏不是这样的）
+
+* replace in files
+
+* 用不着修改源代码的，都不要修改

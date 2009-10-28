@@ -1,0 +1,130 @@
+﻿Scintilla 基础知识
+==================
+
+事件驱动编程，分消息(message)和通知(notification)两种元素。
+
+        消息
+SciTE -------> Scintilla
+      <-------
+        通知
+
+消息的参数为 0、1、2 个，分别为 wParam 和 lParam。对于未使用的参数，建议设置为0。
+这两个参数均为整数，足以存放一个指针。
+
+常见的参数类型：
+
+bool: true/false
+int : 32 signed int
+const char *: 传入 scintilla，但不会被修改，可以以\0结尾，也可以附加一个长度
+char *: 被写的字符串缓冲区
+colour: rgb 的整数
+alpha: 透明度, 0-255。256不管透明(SC_ALPHA_NOALPHA)
+<unused>: 未用，设为0.
+
+一、文本获取和修改
+===================
+
+处在 scintilla 的文档中每个字节都带有 a byte of styling information.
+character byte + style byte = cell.
+style byte 解释成样式数组的一个下标。
+style byte = index + indicator bits
+           low 5 bits  3 high bits
+       2^5=32个基本样式
+3 bits indicator: syntax errors, deprecated names, bad indentation
+style 的 bit 数由 SCI_SETSTYLEBITS 设置，最多可达 7 bits, 128 个值。剩下的位用于 indicators.
+
+手册中，character 就是一个字节（即使是 utf-8）。
+长度以字节数来算。
+
+scintilla 文档中的位置，处在字符前面，或者说，字符处在位置后面。
+第一个位置是0，最后一个位置是 n - 1，跟 C 的 for (i = 0; i < n; i++) 对应。
+光标可以在第0个字符前面，也可以在第 n 个字符后面。
+
+utf-8 中有些字符间的位置，光标不能进入。该位置定为 INVALID_POSITION.
+
+所有的行都等高。
+
+API:
+
+  获取文档的所有文本
+  设置文档的所有文本
+  获得某一行
+  替换选择的文本
+  设置为只读
+  获取范围文本
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+scite/src/SciTEBase.cxx 分析
+==============================
+
+fold level 是个 int，包含了一个 fold level 以及跟 folding 关联的 flags 信息。
+fold level 从 0 到 SC_FOLDLEVELNUMBERMASK (4095).
+初始的 fold level 设为 SC_FOLDLEVELBASE (1024).
+每个 fold level 有两个额外的 flag 位，SC_FOLDLEVELWHITEFLAG 表示当前行为空白行，
+SC_FOLDLEVELHEADERFLAG 表示当前行为一个 fold point。
+
+SCI_GETLASTCHILD(int startLine, int level)
+
+This message searches for the next line after startLine, that has a folding level that is less than or equal to level and then returns the previous line number. If you set level to -1, level is set to the folding level of line startLine. 
+
+Subord: 下[次]级的，从属的
+
+void SciTEBase::FoldAll() {
+    // 首先让 scintilla 从 0 到末尾重绘一次文档，包括折叠信息
+    SendEditor(SCI_COLOURISE, 0, -1);
+    // 获取当前文档的行数。空文档为 1 行，只有一个换行符的文档为 2 行
+    int maxLine = SendEditor(SCI_GETLINECOUNT);
+    // 多次调用本函数时来回进行切换，以决定是要扩展还是折叠
+    bool expanding = true;
+    // 遍历所有的行，寻找第一个 fold point 行，根据其状态切换 expanding 的值
+    for (int lineSeek = 0; lineSeek < maxLine; lineSeek++) {
+        // 提取当前行的折叠信息，判断是否为 fold point 行
+        if (SendEditor(SCI_GETFOLDLEVEL, lineSeek) & SC_FOLDLEVELHEADERFLAG) {
+            // 如果当前行已扩展，则 expanding 设为未扩展，反之亦然
+            expanding = !SendEditor(SCI_GETFOLDEXPANDED, lineSeek);
+            // 找到 fold point 行，中止遍历
+            break;
+        }
+    }
+    // 重新遍历所有的行（即使没有找到有 fold point 的行）
+    for (int line = 0; line < maxLine; line++) {
+        // 获取当前行的 fold level
+        int level = SendEditor(SCI_GETFOLDLEVEL, line);
+        // 如果当前行的 fold level 是 fold point 并且是顶级 fold
+        if ((level & SC_FOLDLEVELHEADERFLAG) &&
+                (SC_FOLDLEVELBASE == (level & SC_FOLDLEVELNUMBERMASK))) {
+            // 如果要执行的操作是扩展
+            if (expanding) {
+                // 设置当前行的折叠标志为已扩展，值 1 为 true
+                SendEditor(SCI_SETFOLDEXPANDED, line, 1);
+                // 递归扩展当前行的子 fold point
+                Expand(line, true, false, 0, level);
+                // 在 Expand 里 line++ 了，因此需要回退一行以还原 line
+                line--;
+            // 如果要执行的操作是折叠
+            } else {
+                // 获取顶级 fold level 行的 last child 行的前一行
+                int lineMaxSubord = SendEditor(SCI_GETLASTCHILD, line, -1);
+                // 设置当前行的折叠标志为已折叠，值 0 为 false
+                SendEditor(SCI_SETFOLDEXPANDED, line, 0);
+                // 如果 last child 行的前一行的等号比当前行大（即在当前行下面）
+                if (lineMaxSubord > line)
+                    // 将当前行的下一行到 last child 行的前一行标记为不可见，然后重绘屏幕
+                    SendEditor(SCI_HIDELINES, line + 1, lineMaxSubord);
+            }
+        }
+    }
+}

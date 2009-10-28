@@ -1,0 +1,6 @@
+3=<?php | ?>
+if=<?php if (|) { ?>\n    \n<?php } ?>
+ie=<?php if (|) { ?>\n    \n<?php } else { ?>\n    \n<?php } ?>
+for=<?php for (|) { ?>\n    \n<?php } ?>
+foreach=<?php foreach (|) { ?>\n    \n<?php } ?>
+e=<?php echo |; ?>
