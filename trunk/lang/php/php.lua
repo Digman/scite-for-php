@@ -119,6 +119,13 @@ local function checkDoc(char)
         tabLen = string.len(findTab)
         break
     end
+    
+    local author = ''
+    if props['document.author'] ~= nil and props['document.author'] ~= '' then
+        author = props['document.author']
+    else
+        author = os.getenv('USERNAME')
+    end
 
     if ("\n" == char or "\r" == char) and lineEnd >= 3 and '/**' == editor:textrange(lineEnd - 3 - eolLength, lineEnd - eolLength) then
         if editor.LineCount <= line then
@@ -172,7 +179,7 @@ local function checkDoc(char)
                 if className ~= nil then
                     str = trim .. " * description..." .. eol
                     str = str .. tab .. " * " .. eol
-                    str = str .. tab .. " * @author ".. os.getenv('USERNAME') .. eol
+                    str = str .. tab .. " * @author ".. author .. eol
                     str = str .. tab .. " * @category Project" .. eol
                     str = str .. tab .. " * @package " .. className .. eol
                     str = str .. tab .. " */"
@@ -226,7 +233,7 @@ local function checkDoc(char)
 		else
 			str = trim .. " * description..." .. eol
             str = str .. tab .. " * " .. eol
-   			str = str .. tab .. " * @author ".. os.getenv('USERNAME') .. eol
+   			str = str .. tab .. " * @author ".. author .. eol
    			str = str .. tab .. " * @category Project" .. eol
    			str = str .. tab .. " * @package None" .. eol
    			str = str .. tab .. " * @copyright Copyright (c) ".. os.date('%Y') .. eol
