@@ -18,7 +18,7 @@ version 1.10.3
     # Set default settings for Functions/Procedures List
     sidebar.functions.flags=1
     sidebar.functions.params=1
---]]--------------------------------------------------
+--]]--------------------------------------------------n
 require 'lpeg'
 require 'gui'
 require 'shell'
@@ -395,8 +395,6 @@ list_dir:on_key(function(key)
 		FileMan_FileDelete()
 	elseif key == 45 then -- Insert
 		Favorites_AddFile()
-	elseif key == 78  then
-		FileMan_NewFile()
 	end
 end)
 
