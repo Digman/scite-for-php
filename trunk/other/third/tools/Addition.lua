@@ -29,3 +29,31 @@ function edit_colour ()
 		editor:ReplaceSel(colour)
 	end
 end
+
+--------------------------
+-- 检查UTF8编码
+--------------------------
+local function IsUTF8()
+	local text = editor:GetText()
+	local cont = lpeg.R("\128\191")   -- continuation byte
+	local utf8 = lpeg.R("\0\127")^1
+			+ (lpeg.R("\194\223") * cont)^1
+			+ (lpeg.R("\224\239") * cont * cont)^1
+			+ (lpeg.R("\240\244") * cont * cont * cont)^1
+	local latin = lpeg.R("\0\127")^1
+	local searchpatt = latin^0 * utf8 ^1 * -1
+	if searchpatt:match(text) then
+		scite.MenuCommand(IDM_ENCODING_UCOOKIE)
+	end
+end
+
+--------------------------
+-- 全局调用检查编码函数
+--------------------------
+function OnCheckUTF()
+    if props["utf8.check"] == "1" then
+        if editor.CodePage ~= SC_CP_UTF8 then
+            IsUTF8()
+        end
+	end    
+end

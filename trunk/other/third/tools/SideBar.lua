@@ -26,8 +26,7 @@ require 'shell'
 -- you can choose to make it a stand-alone window; just uncomment this line:
 -- local win = true
 
--- local _DEBUG = true --включает выво?отладочной информации
--- отображени?флагов/параметров по умолчани?
+-- local _DEBUG = true 
 local _show_flags = tonumber(props['sidebar.functions.flags']) == 1
 local _show_params = tonumber(props['sidebar.functions.params']) == 1
 
@@ -970,6 +969,7 @@ function OnOpen(file)
 	local result
 	if old_OnOpen then result = old_OnOpen(file) end
 	OnSwitch()
+    OnCheckUTF() --check utf8 code
 	return result
 end
 

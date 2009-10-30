@@ -48,14 +48,16 @@ function select_word()
 end
 
 
--- 切换编码
+-- 切换输出区码
 function switch_encoding()
-    if props['code.page'] == '65001' then
-        props['code.page'] = '936'
+    if props['output.code.page'] == '65001' then
+        --scite.MenuCommand(IDM_ENCODING_DEFAULT)
+        props['output.code.page'] = '936'
     else
-        props['code.page'] = '65001'
+        --scite.MenuCommand(IDM_ENCODING_UCOOKIE)
+        props['output.code.page'] = '65001'
     end
-    scite.UpdateStatusBar()
+    scite.UpdateStatusBar() 
 end
 
 -- php suit script
@@ -66,10 +68,12 @@ dofile (props["SciteDefaultHome"].."\\other\\third\\tools\\ShowCalltip.lua")
 dofile (props["SciteDefaultHome"].."\\other\\third\\tools\\COMMON.lua")
 -- Extman.lua
 --dofile (props["SciteDefaultHome"].."\\other\\third\\tools\\Extman.lua")
--- SideBar.lua
-dofile (props["SciteDefaultHome"].."\\other\\third\\tools\\SideBar.lua")
 -- Addition.lua
 dofile (props["SciteDefaultHome"].."\\other\\third\\tools\\Addition.lua")
+-- SideBar.lua
+dofile (props["SciteDefaultHome"].."\\other\\third\\tools\\SideBar.lua")
+
+
 
 
 
