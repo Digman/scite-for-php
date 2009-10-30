@@ -51,10 +51,12 @@ end
 -- 切换输出区码
 function switch_encoding()
     if props['output.code.page'] == '65001' then
-        --scite.MenuCommand(IDM_ENCODING_DEFAULT)
+        scite.MenuCommand(IDM_ENCODING_DEFAULT)
+        props['code.page'] = '936'
         props['output.code.page'] = '936'
     else
-        --scite.MenuCommand(IDM_ENCODING_UCOOKIE)
+        scite.MenuCommand(IDM_ENCODING_UCOOKIE)
+        props['code.page'] = '65001'
         props['output.code.page'] = '65001'
     end
     scite.UpdateStatusBar() 

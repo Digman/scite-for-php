@@ -22,11 +22,11 @@
 ------------------------------------------------
 
 local snippets = {
-    --           0123456789012345678901234567890123456 789012345 678901
     ['for'] = '3;for (%{1} = 0; %{1} < %{2}; %{1}++) {\n    %{3}\n}%{end}',
-    ['obj'] = '4;class %{1} {\n    public static function %{2}(%{3}) {\n        %{4}\n    }\n}%{end}',
-    ['fcn'] = '3;function %{1}(%{2}) {\n    %{3}\n}%{end}',
-    ['form'] = "3;self::load_form();\nif (visitor::is_post()) {\n    $form = new %{1}_form(p());\n    $form->validate();\n    if ($form->is_valid()) {\n        %{3};\n        return;\n    }\n    $form->set_summary('出错了...');\n} else {\n    $form = new %{1}_form();\n}\n$form->set_action_url(url('%{2}', '', '/', false));\nself::set('form', $form);\nself::show();%{end}"
+    ['class'] = '2;class %{1} {\n    function __construct() {\n         %{2}\n    }\n}%{end}',
+    ['func'] = '3;function %{1}(%{2}) \n{\n    %{3}\n}%{end}',
+    ['foreach'] ='3;foreach (%{1} as %{2}) \n{\n    %{3}\n}%{end}';
+    ['if'] ='2;if (%{1}) \n{\n    %{2}\n}%{end}';
 }
 local in_snippet
 local total_num
@@ -354,8 +354,10 @@ function php_snippet()
         current_num = current_num + 1
         if current_num > total_num then
             local b, e = editor:findtext('%{end}', 0, begin_pos)
-            editor:SetSel(b, e)
-            editor:ReplaceSel('')
+            if b ~= nil and e ~= nil then
+                editor:SetSel(b, e)
+                editor:ReplaceSel('')
+            end
             php_snippet_init()
             return
         end
@@ -381,7 +383,9 @@ function php_snippet()
         end
     else
         local word = props['CurrentWord']
-        editor:DelWordLeft()
+        if snippets[word] == nil then return end
+        --editor:DelWordLeft()
+        editor:ReplaceSel('')
         total_num     = tonumber(string.sub(snippets[word], 1, 1))
         current_num   = 0
         begin_pos     = editor.CurrentPos
@@ -399,7 +403,7 @@ function php_snippet()
         for i = 1, lines do
             local line_indent = scite.SendEditor(SCI_GETLINEINDENTATION, curline + i)
             scite.SendEditor(SCI_SETLINEINDENTATION, curline + i, indent + line_indent)
-        end
+        end 
         in_snippet = true
         php_snippet()
     end
