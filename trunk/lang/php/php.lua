@@ -276,6 +276,7 @@ function GotoDefinition()
 		-- mark current line to be able to jump back
         -- editor:MarkerAdd(editor:LineFromPosition(editor.CurrentPos),1)
 		editor:GotoLine(editor:LineFromPosition(place)) 
+        editor:MarkerAdd(editor:LineFromPosition(place),1)
     else
         --print("Unable to find definition: ".. word)
     end
