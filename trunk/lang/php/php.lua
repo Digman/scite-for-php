@@ -257,6 +257,30 @@ local function checkDoc(char)
 
 end
 
+function GotoDefinition()
+    local word = props['CurrentWord']
+    
+    if word == nil then
+        --print("No word selected.")
+        return
+    end
+    local text = editor:GetText()
+    func = string.find(text, "[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn] " .. word)
+    cls = string.find(text, "[Cc][Ll][Aa][Ss][Ss] " .. word)
+    if func then
+        place = func
+    else
+        place = cls
+    end
+    if place then 
+		-- mark current line to be able to jump back
+        -- editor:MarkerAdd(editor:LineFromPosition(editor.CurrentPos),1)
+		editor:GotoLine(editor:LineFromPosition(place)) 
+    else
+        --print("Unable to find definition: ".. word)
+    end
+end 
+
 
 ------------------------------------------------
 -- 事件
