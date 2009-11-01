@@ -260,13 +260,13 @@ end
 function GotoDefinition()
     local word = props['CurrentWord']
     
-    if word == nil then
+    if word == nil or word=='' then
         --print("No word selected.")
         return
     end
     local text = editor:GetText()
     func = string.find(text, "[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn] " .. word)
-    cls = string.find(text, "[Cc][Ll][Aa][Ss][Ss] " .. word)
+    cls  = string.find(text, "[Cc][Ll][Aa][Ss][Ss] " .. word)
     if func then
         place = func
     else
@@ -408,8 +408,8 @@ function php_snippet()
     else
         local word = props['CurrentWord']
         if snippets[word] == nil then return end
-        --editor:DelWordLeft()
-        editor:ReplaceSel('')
+        editor:DelWordLeft()
+        --editor:ReplaceSel('')
         total_num     = tonumber(string.sub(snippets[word], 1, 1))
         current_num   = 0
         begin_pos     = editor.CurrentPos
