@@ -244,7 +244,7 @@ local function checkDoc(char)
    			str = str .. tab .. " * @category Project" .. eol
    			str = str .. tab .. " * @package None" .. eol
    			str = str .. tab .. " * @copyright Copyright (c) ".. os.date('%Y') .. eol
-   			str = str .. tab .. " * @version $Id$" .. eol
+   			str = str .. tab .. " * @version $Id$" .. eol --配合 svn:keywords 产生版本修改信息
    			str = str .. tab .. " */"
 
 			formatEditorDoc(str, tab, line)             

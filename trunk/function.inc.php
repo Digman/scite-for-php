@@ -29,4 +29,9 @@ function __autoload($classname)
     
 } 
 
+function test()
+{
+    $ssh = new SSH();
+}
+
 /** End of file function.inc.php */
