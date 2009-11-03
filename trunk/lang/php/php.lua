@@ -157,6 +157,10 @@ local function checkDoc(char)
                         iaccess = access1
                     end
                     
+                    if iaccess == '' then
+                        iaccess = 'public'
+                    end
+                    
                     local struct = findDefinedFunctionParams(nextLine)
                     
                     str = trim .. " * description..." .. eol
@@ -204,12 +208,10 @@ local function checkDoc(char)
                     else
                         iaccess = access1
                     end
-                    
                     --var to be public access
                     if iaccess == string.lower('var') then
                         iaccess = 'public'
                     end
-                    
                     str = trim .. " * description..." .. eol
                     str = str .. tab .. " * " .. eol
                     str = str .. tab .. " * @access " .. iaccess .. eol
@@ -242,7 +244,7 @@ local function checkDoc(char)
    			str = str .. tab .. " * @category Project" .. eol
    			str = str .. tab .. " * @package None" .. eol
    			str = str .. tab .. " * @copyright Copyright (c) ".. os.date('%Y') .. eol
-   			str = str .. tab .. " * @version v1.0 (".. os.date('%m/%d/%Y') ..")" .. eol
+   			str = str .. tab .. " * @version $Id: ".. props['FileNameExt'] .." ".. os.date('%Y-%m-%d') .." " .. author .." $" .. eol
    			str = str .. tab .. " */"
 
 			formatEditorDoc(str, tab, line)             
