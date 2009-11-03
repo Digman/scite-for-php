@@ -6,7 +6,7 @@
  * @category Project
  * @package None
  * @copyright Copyright (c)2009
- * @version $Id$
+ * @version $Id: function.inc.php 36 2009-11-03 14:57:55Z long2513 $
  */
  
 /**
@@ -28,6 +28,7 @@ function __autoload($classname)
 	} 
     
 } 
+
 
 
 /** End of file function.inc.php */
