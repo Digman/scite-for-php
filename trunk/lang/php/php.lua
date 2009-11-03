@@ -79,10 +79,15 @@ local function checkDoc(char)
     end
 
 	if " " == char and editor.CurrentPos >= 3 and '/**' == editor:textrange(editor.CurrentPos - 4, editor.CurrentPos - 1) then
-		local str = "description... */"
-		scite.SendEditor(SCI_INSERTTEXT, editor.CurrentPos, str)
+        local str = ''
+        if editor:LineFromPosition(editor.CurrentPos)+1 == editor.LineCount then 
+            str = "End of file ".. props['FileNameExt']
+        else
+            str = "description..."
+        end
+		scite.SendEditor(SCI_INSERTTEXT, editor.CurrentPos, str.." */")
 		scite.SendEditor(SCI_SETSELECTIONSTART, editor.CurrentPos)
-		scite.SendEditor(SCI_SETSELECTIONEND, editor.CurrentPos + string.len("description..."))
+		scite.SendEditor(SCI_SETSELECTIONEND, editor.CurrentPos + string.len(str))
 		return
 	end
 
