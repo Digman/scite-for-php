@@ -4,30 +4,43 @@
 -- 编辑颜色
 --------------------------
 function edit_colour ()
-    local function getch (i)
+    local function get_prevch (i)
+        return editor:textrange(i-1,i)
+	end
+    local function get_nextch (i)
 	    return editor:textrange(i,i+1)
 	end
-	local function hexdigit (c)
-	    return c:find('[0-9A-F]')==1
+	local function hexdigit(c)
+	    return c:find('[0-9a-fA-F]')==1
 	end
 	local i = editor.CurrentPos
 	-- let's find the extents of this colour field...
-	local ch = getch(i)
+	local ch = get_prevch(i)
+    -- 先向前查找颜色编码
 	while i > 0 and ch ~= '#' and hexdigit(ch) do
 		i = i - 1
-		ch = getch(i)
+		ch = get_prevch(i)
 	end
-	if i == 0 then return end
-	local istart = i
-	--i = i + 1 -- skip the '#'
-	while hexdigit(getch(i)) do i = i + 1 end
+ 	if i == 0 then return end
+    local istart = i
+    -- skip the '#'
+    if ch == '#' then
+        istart = istart - 1 
+    end
+    if get_nextch(i) == '#' then
+        i = i+1
+    end
+    --反向查找颜色编码
+ 	while hexdigit(get_nextch(i)) do 
+        i = i + 1 
+    end
 	-- extract the colour!
-	local colour = editor:textrange(istart,i)
-	colour = gui.colour_dlg(colour)
-	if colour then -- replace the colour in the document
-		editor:SetSel(istart,i)
+ 	local colour = editor:textrange(istart,i)
+ 	colour = gui.colour_dlg(colour)
+ 	if colour then -- replace the colour in the document
+ 		editor:SetSel(istart,i)
 		editor:ReplaceSel(colour)
-	end
+ 	end
 end
 
 --------------------------
