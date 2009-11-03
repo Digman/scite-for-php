@@ -1,12 +1,12 @@
 <?php
 /**
- * description...
+ * Functions lib
  * 
  * @author Kim L
  * @category Project
  * @package None
- * @copyright Copyright (c) 2009
- * @version $Id 
+ * @copyright Copyright (c)2009
+ * @version $Id$
  */
  
 /**

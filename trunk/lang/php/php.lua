@@ -243,8 +243,8 @@ local function checkDoc(char)
    			str = str .. tab .. " * @author ".. author .. eol
    			str = str .. tab .. " * @category Project" .. eol
    			str = str .. tab .. " * @package None" .. eol
-   			str = str .. tab .. " * @copyright Copyright (c) ".. os.date('%Y') .. eol
-   			str = str .. tab .. " * @version $Id " .. eol
+   			str = str .. tab .. " * @copyright Copyright (c)".. os.date('%Y') .. eol
+   			str = str .. tab .. " * @version $Id$" .. eol
    			str = str .. tab .. " */"
 
 			formatEditorDoc(str, tab, line)             
