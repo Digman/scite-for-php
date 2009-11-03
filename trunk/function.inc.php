@@ -1,14 +1,14 @@
 <?php
 /**
- * Functions lib
+ * description...
  * 
- * @author Kim L 
+ * @author Kim L
  * @category Project
  * @package None
  * @copyright Copyright (c) 2009
- * @version $Id: function.inc.php 2009-11-03 Kim L $
+ * @version $Id 
  */
-
+ 
 /**
  * auto load class file
  * 
