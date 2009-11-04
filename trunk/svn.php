@@ -10,4 +10,6 @@
  * @version $Id$
  */
  
- class e{}
+ class e{
+     
+ }
