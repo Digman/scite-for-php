@@ -17,9 +17,9 @@ function edit_colour ()
 	-- let's find the extents of this colour field...
 	local ch = get_prevch(i)
     -- 先向前查找颜色编码
-	while i > 0 and ch ~= '#' and hexdigit(ch) do
+	while i > 0 and ch ~= '#' and hexdigit(get_prevch(i)) do
 		i = i - 1
-		ch = get_prevch(i)
+		--ch = get_prevch(i)
 	end
  	if i == 0 then return end
     local istart = i
