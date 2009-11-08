@@ -12,5 +12,12 @@ a:hover {
     
 }
 #idhere {
-    width: 100px !important;
+   width: 100px !important;
 }
+
+.col{
+    color:#ffffff; 
+    font-size:12px;
+    border:1px sold #181818!important;
+}
+
