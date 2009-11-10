@@ -339,7 +339,11 @@ function OnKey(k, shift, ctrl, alt)
             return
         end
         chr = string.char(chr)
-        local mth = string.char(editor.CharAt[pos + 1])
+        thr = editor.CharAt[pos + 1]
+        if thr <0 then
+            return
+        end
+        local mth = string.char(thr)
         if toDelete[chr] and toDelete[chr] == mth then
             editor:SetSel(pos, pos + 2)
             editor:ReplaceSel('')
