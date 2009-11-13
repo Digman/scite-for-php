@@ -272,12 +272,22 @@ function GotoDefinition()
         return
     end
     local text = editor:GetText()
-    func = string.find(text, "[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn][ ]+[&]*" .. word)
-    cls  = string.find(text, "[Cc][Ll][Aa][Ss][Ss][ ]+" .. word)
+    func = string.find(text, "[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn][ ]+[&]*" .. word) --defined function
+    cls  = string.find(text, "[Cc][Ll][Aa][Ss][Ss][ ]+" .. word) --defined class
+    const= string.find(text, "[Dd][Ee][Ff][Ii][Nn][Ee][(]['\"]"..word.."['\"]") --defined const
+    --找定义的变量
+    if not string.find(word,"[$]") then
+        word="$"..word
+    end
+    other  = string.find(text, word)
     if func then
         place = func
-    else
+    elseif cls then
         place = cls
+    elseif const then
+        place = const
+    else
+        place = other
     end
     if place then 
 		-- mark current line to be able to jump back
