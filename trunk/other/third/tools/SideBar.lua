@@ -130,7 +130,7 @@ tab0:context_menu {
 	'Execute|FileMan_FileExec',
 	'Exec with Params|FileMan_FileExecWithParams',
     '', -- separator
-    'Hide sidebar\tCtrl+9|SideBar_ShowHide',
+    'Hide sidebar\tCtrl+0|SideBar_ShowHide',
 }
 -------------------------
 local tab1 = gui.panel(panel_width + 18)
