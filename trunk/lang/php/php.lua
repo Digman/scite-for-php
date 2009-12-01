@@ -324,6 +324,7 @@ function OnChar(c)
     end
     -- 智能越过
     if toPass[c] then
+        if (editor.CharAt[editor.CurrentPos - 2] < 0) then return end
         if toPass[c] == string.char(editor.CharAt[editor.CurrentPos - 2]) then
             editor:GotoPos(editor.CurrentPos + 1)
             scite.SendEditor(SCI_DELETEBACK);
