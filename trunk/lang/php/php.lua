@@ -52,7 +52,7 @@ access = {['public'] = true;['private'] = true;['protected'] = true;['var'] = tr
 function findDefinedFunctionParams(params)
     local struct = {}
     --在编辑器中寻找
-    for class, var in string.gmatch(params, "(%w*)%s*\$(%w+)") do
+    for class, var in string.gmatch(params, "(%w*)%s*\$([_a-zA-Z0-9]+)") do
         if string.len(class) > 0 then
             table.insert(struct, class .. " $" .. var)
         else
