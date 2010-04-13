@@ -126,10 +126,15 @@ local function checkDoc(char)
     end
     
     local author = ''
+    local siteurl= ''
     if props['document.author'] ~= nil and props['document.author'] ~= '' then
         author = props['document.author']
     else
         author = os.getenv('USERNAME')
+    end
+    
+    if props['document.author'] ~= nil then
+        siteurl = props['document.siteurl']
     end
 
     if ("\n" == char or "\r" == char) and lineEnd >= 3 and '/**' == editor:textrange(lineEnd - 3 - eolLength, lineEnd - eolLength) then
@@ -189,7 +194,7 @@ local function checkDoc(char)
                     str = trim .. " * description..." .. eol
                     str = str .. tab .. " * " .. eol
                     str = str .. tab .. " * @author ".. author .. eol
-                    str = str .. tab .. " * @category Project" .. eol
+                    str = str .. tab .. " * @category  " .. eol
                     str = str .. tab .. " * @package " .. className .. eol
                     str = str .. tab .. " */"
                     
@@ -243,7 +248,7 @@ local function checkDoc(char)
    			str = str .. tab .. " * @author ".. author .. eol
    			str = str .. tab .. " * @category Project" .. eol
           --str = str .. tab .. " * @package None" .. eol
-   			str = str .. tab .. " * @copyright Copyright(c) ".. os.date('%Y') .. eol
+   			str = str .. tab .. " * @copyright Copyright(c) ".. os.date('%Y') ..' '.. siteurl .. eol
    			str = str .. tab .. " * @version $Id$" .. eol --配合 svn:keywords 产生版本修改信息
    			str = str .. tab .. " */"
 
