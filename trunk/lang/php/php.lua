@@ -73,8 +73,11 @@ local function formatEditorDoc(str, tab, line)
     scite.SendEditor(SCI_SETSELECTIONEND, selEnd)
 end
 
-local function checkDoc(char)
+local function checkDoc(char)   
     if "\n" ~= char and "\r" ~= char and " " ~= char then
+        return
+    --解决\r\n时2次注释的问题
+    elseif 0 == editor.EOLMode and "\r" == char then
         return
     end
 
@@ -112,7 +115,7 @@ local function checkDoc(char)
     if 1 == editor.EOLMode then
         eol = "\r"
     end
-    
+
     if(lineEnd < lineStart + eolLength + 3) then
         return
     end
@@ -138,6 +141,7 @@ local function checkDoc(char)
     end
 
     if ("\n" == char or "\r" == char) and lineEnd >= 3 and '/**' == editor:textrange(lineEnd - 3 - eolLength, lineEnd - eolLength) then
+        preChar = char
         if editor.LineCount <= line then
             nextLine = nil
         else
@@ -150,7 +154,6 @@ local function checkDoc(char)
         if editor.CurrentPos <= editor:PositionFromLine(line) then
             trim = tab
         end
-
 
         if nextLine ~= nil then       
             for access1, access2, functionName in string.gmatch(nextLine, "(%w*)%s*(%w*)%s*function%s+[&]*([_a-zA-Z0-9]+)%s*\(.*\)") do
@@ -257,7 +260,7 @@ local function checkDoc(char)
 		end
     end
 
-     if ("\n" == char or "\r" == char) and lineEnd >= 2 and '*' == editor:textrange(lineStart + tabLen, lineStart + tabLen + 1) and '/' ~= editor:textrange(lineStart + tabLen + 1, lineStart + tabLen + 2) then
+    if ("\n" == char or "\r" == char) and lineEnd >= 2 and '*' == editor:textrange(lineStart + tabLen, lineStart + tabLen + 1) and '/' ~= editor:textrange(lineStart + tabLen + 1, lineStart + tabLen + 2) then
         if 0 == editor.EOLMode then
             editor:InsertText(editor.CurrentPos, '* ')
             editor:GotoPos(editor.CurrentPos + 2)
