@@ -153,7 +153,7 @@ local function checkDoc(char)
 
 
         if nextLine ~= nil then       
-            for access1, access2, functionName in string.gmatch(nextLine, "(%w*)%s*(%w*)%s*function%s+([_a-zA-Z0-9]+)%s*\(.*\)") do
+            for access1, access2, functionName in string.gmatch(nextLine, "(%w*)%s*(%w*)%s*function%s+[&]*([_a-zA-Z0-9]+)%s*\(.*\)") do
                 if functionName ~= nil then
                     local iaccess = ''                    
                     if true == rawget(access, access2) then
