@@ -64,7 +64,7 @@ end
 local function OpenFile(filename)
 	if filename:match(".session$") ~= nil then
 		filename = filename:gsub('\\','\\\\')
-		scite.Perform ("loadsession:"..filename)
+		--scite.Perform ("loadsession:"..filename)
 	else
 		scite.Open(filename)
 	end
@@ -108,8 +108,10 @@ local memo_path = gui.memo()
 tab0:add(memo_path, "top", 22)
 
 local list_dir_height = win_height/3
-if list_dir_height <= 0 then list_dir_height = 200 end
-local list_favorites = gui.list(tFileMan_NewFilerue)
+if list_dir_height <= 0 then list_dir_height = 320 end
+local list_functions = gui.list(true)
+list_functions:add_column("Functions/Procedures", 400)
+tab0:add(list_functions, "bottom", list_dir_height)
 
 local list_dir = gui.list()
 tab0:client(list_dir)
@@ -127,26 +129,31 @@ tab0:context_menu {
 	'Rename|FileMan_FileRename',
 	'Delete\tDelete|FileMan_FileDelete',
 	'', -- separator
-	'Execute|FileMan_FileExec',
-	'Exec with Params|FileMan_FileExecWithParams',
+	--'Execute|FileMan_FileExec',
+	--'Exec with Params|FileMan_FileExecWithParams',
+    'Sort by Order|Functions_SortByOrder',
+	'Sort by Name|Functions_SortByName',
+	--'', -- separator
+	'Show/Hide Flags|Functions_ToggleFlags',
+	'Show/Hide Parameters|Functions_ToggleParams',
     '', -- separator
-    'Hide sidebar\tCtrl+0|SideBar_ShowHide',
+    'Hide SideBar\tCtrl+0|SideBar_ShowHide',
 }
 -------------------------
 local tab1 = gui.panel(panel_width + 18)
 
-local list_func = gui.list(true)
-list_func:add_column("Functions/Procedures", 600)
-tab1:client(list_func)
+local list_project = gui.list(true)
+--list_project:add_column("Project files", 600)
+tab1:client(list_project)
 
 tab1:context_menu {
-	'Sort by Order|Functions_SortByOrder',
-	'Sort by Name|Functions_SortByName',
-	'', -- separator
-	'Show/Hide Flags|Functions_ToggleFlags',
-	'Show/Hide Parameters|Functions_ToggleParams',
-    '', -- separator
-    'Hide sidebar|SideBar_ShowHide',
+    'Open Dir As Project|Open_Project_Dir',
+    '',
+    'SVN Update б¤|SVN_Update',
+    'SVN Commit б№|SVN_Commit',
+    'SVN Add глгл|SVN_Add',
+    '',
+    'Hide SideBar|SideBar_ShowHide',
 }
 
 -------------------------
@@ -159,7 +166,7 @@ end
 
 local tabs = gui.tabbar(win_parent)
 tabs:add_tab("Files", tab0)
-tabs:add_tab("Functions", tab1)
+tabs:add_tab("Project", tab1)
 win_parent:client(tab1)
 win_parent:client(tab0)
 
@@ -177,6 +184,7 @@ end
 ----------------------------------------------------------
 local current_path = ''
 local file_mask = '*.*'
+local project_path = ''
 
 local function FileMan_ShowPath()
 	local rtf = [[{\rtf\ansi\ansicpg1251{\fonttbl{\f0\fcharset204 Helv;}}{\colortbl;\red0\green0\blue255;\red255\green0\blue0;}\f0\fs16]]
@@ -193,7 +201,7 @@ local function FileMan_ListFILL()
 	local folders = gui.files(current_path..'*', true)
 	if not folders then return end
 	list_dir:clear()
-	list_dir:add_item ('[Parent directory]', {'..','d'})
+	list_dir:add_item ('[..]', {'..','d'})
 	for i, d in ipairs(folders) do
 		list_dir:add_item('['..d..']', {d,'d'})
 	end
@@ -397,8 +405,126 @@ list_dir:on_key(function(key)
 	end
 end)
 
+-------------------------------------
+--  Project functions 
+-------------------------------------
+
+local function Project_ListFILL()
+	if project_path == '' then return end
+	local folders = gui.files(project_path..'*', true)
+	if not folders then return end
+	list_project:clear()
+    list_project:add_column(project_path, 600)
+	list_project:add_item ('[..]', {'..','d'})
+	for i, d in ipairs(folders) do
+		list_project:add_item('['..d..']', {d,'d'})
+	end
+	local files = gui.files(project_path..file_mask)
+	if files then
+		for i, filename in ipairs(files) do
+			list_project:add_item(filename, {filename})
+		end
+	end
+	list_project:set_selected_item(0)
+end
+
+local function Project_GetSelectedItem()
+	local idx = list_project:get_selected_item()
+	if idx == -1 then return '' end
+	local data = list_project:get_item_data(idx)
+	local dir_or_file = data[1]
+	local attr = data[2]
+	return dir_or_file, attr
+end
+
+local function Project_OpenItem()
+	local dir_or_file, attr = Project_GetSelectedItem()
+	if dir_or_file == '' then return end
+	if attr == 'd' then
+		gui.chdir(dir_or_file)
+		if dir_or_file == '..' then
+			local new_path = project_path:gsub('(.*\\).*\\$', '%1')
+			if not gui.files(new_path..'*',true) then return end
+			project_path = new_path
+		else
+			project_path = project_path..dir_or_file..'\\'
+		end
+		Project_ListFILL()
+	else
+		OpenFile(project_path..dir_or_file)
+	end
+end
+
+list_project:on_double_click(function()
+	Project_OpenItem()
+end)
+
+list_project:on_key(function(key)
+	if key == 13 then -- Enter
+		Project_OpenItem()
+	elseif key == 8 then -- BackSpace
+		list_project:set_selected_item(0)
+		Project_OpenItem()
+    end
+end)
+
+function Open_Project_Dir()
+    local Path = gui.select_dir_dlg('Please select a directory', project_path)
+	if Path == nil then return end
+	if Path:match('[\\/]$') then
+		project_path = Path
+	else
+		project_path = Path .. '\\'
+	end
+    Project_ListFILL()
+    Project_Save_Path()
+end
+
+function Project_Save_Path()
+    if project_path =='' then end
+    file = io.open(props["SciteUserHome"] .."\\SciTE.prej","w")
+    file:write(project_path)
+    file:close() 
+end
+
+function Project_Get_Store_Path()
+    file = io.open(props["SciteUserHome"] .."\\SciTE.prej", "r") 
+    ourline = file:read() 
+    if ourline ~=nil then 
+        project_path =  ourline
+        Project_ListFILL()
+    end
+end
+
+function SVN_Update()
+    local dir_or_file, attr = Project_GetSelectedItem()
+    if dir_or_file ~= '..' then
+        local path = project_path .. dir_or_file
+        local command = "\""..props['TortoiseSVNPath'].."\\TortoiseProc.exe\" /command:update /path:\""..path.."\" /notempfile /closeonend:0"
+        shell.exec(command)
+    end
+end
+
+function SVN_Commit()
+    local dir_or_file, attr = Project_GetSelectedItem()
+    if dir_or_file ~= '..' then
+        local path = project_path .. dir_or_file
+        local command = "\""..props['TortoiseSVNPath'].."\\TortoiseProc.exe\" /command:commit /path:\""..path.."\" /notempfile /closeonend:0"
+        shell.exec(command)
+    end
+end
+
+function SVN_Add()
+    local dir_or_file, attr = Project_GetSelectedItem()
+    if dir_or_file ~= '..' then
+        local path = project_path .. dir_or_file
+        local command = "\""..props['TortoiseSVNPath'].."\\TortoiseProc.exe\" /command:add /path:\""..path.."\" /notempfile /closeonend:0"
+        shell.exec(command)
+    end
+end
+
 ----------------------------------------------------------
--- tab1:list_func   Functions/Procedures
+-- tab0:list_functions   Functions/Procedures
 ----------------------------------------------------------
 local table_functions = {}
 -- 1 - function names
@@ -814,7 +940,7 @@ local function Functions_GetNames()
 end
 
 local function Functions_ListFILL()
-	if tonumber(props['sidebar.show'])~=1 or tab_index~=1 then return end
+	if tonumber(props['sidebar.show'])~=1 or (tab_index~=1 and tab_index~=0) then return end
 	if _sort == 'order' then
 		table.sort(table_functions, function(a, b) return a[2] < b[2] end)
 	else
@@ -826,7 +952,7 @@ local function Functions_ListFILL()
 			table.remove (table_functions, i)
 		end
 	end
-	list_func:clear()
+	list_functions:clear()
 
 	local function emptystr(...) return '' end
 	local function GetParams (funcitem)
@@ -853,7 +979,7 @@ local function Functions_ListFILL()
 		return GetFlags(funcitem)..funcitem[1]..GetParams(funcitem)
 	end
 	for _, a in ipairs(table_functions) do
-		list_func:add_item(fixname(a), a[2])
+		list_functions:add_item(fixname(a), a[2])
 	end
 end
 
@@ -878,9 +1004,9 @@ function Functions_ToggleFlags ()
 end
 
 local function Functions_GotoLine()
-	local sel_item = list_func:get_selected_item()
+	local sel_item = list_functions:get_selected_item()
 	if sel_item == -1 then return end
-	local pos = list_func:get_item_data(sel_item)
+	local pos = list_functions:get_item_data(sel_item)
 	if pos then
 		ShowCompactedLine(pos)
 		editor:GotoLine(pos)
@@ -888,15 +1014,16 @@ local function Functions_GotoLine()
 	end
 end
 
-list_func:on_double_click(function()
+list_functions:on_double_click(function()
 	Functions_GotoLine()
 end)
 
-list_func:on_key(function(key)
+list_functions:on_key(function(key)
 	if key == 13 then -- Enter
 		Functions_GotoLine()
 	end
 end)
+
 ----------------------------------------------------------
 -- Events
 ----------------------------------------------------------
@@ -910,10 +1037,11 @@ local function OnSwitch()
 			current_path = path
 			FileMan_ListFILL()
 		end
-	elseif tab1:bounds() then -- visible Function
+	--elseif tab1:bounds() then -- visible Function
 		Functions_GetNames()
 		Functions_ListFILL()
 	end
+    Project_Get_Store_Path()
 	_DEBUG.timerstop('OnSwitch')
 end
 
