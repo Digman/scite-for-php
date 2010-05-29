@@ -452,7 +452,6 @@ local function Project_OpenItem()
 		else
 			cur_proj_path = cur_proj_path..dir_or_file..'\\'
 		end
-        
 		Project_ListFILL()
 	else
 		OpenFile(cur_proj_path..dir_or_file)
@@ -481,7 +480,6 @@ function Open_Project_Dir()
 		project_path = Path .. '\\'
 	end
     Project_Save_Path()
-    Project_ListFILL()
 end
 
 function Project_Save_Path()
@@ -490,6 +488,7 @@ function Project_Save_Path()
     if(file ~= nil) then
         file:write(project_path)
         file:close() 
+        Project_ListFILL()
     end
 end
 
