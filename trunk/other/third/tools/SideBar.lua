@@ -1046,11 +1046,11 @@ local function OnSwitch()
 			current_path = path
 			FileMan_ListFILL()
 		end
-	--elseif tab1:bounds() then -- visible Function
-		Functions_GetNames()
+        Functions_GetNames()
 		Functions_ListFILL()
+	elseif tab1:bounds() then -- visible Project
+		Project_Get_Store_Path()
 	end
-    Project_Get_Store_Path()
 	_DEBUG.timerstop('OnSwitch')
 end
 
