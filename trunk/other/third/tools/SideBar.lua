@@ -110,7 +110,7 @@ tab0:add(memo_path, "top", 22)
 local list_dir_height = win_height/3
 if list_dir_height <= 0 then list_dir_height = 320 end
 local list_functions = gui.list(true)
-list_functions:add_column("Functions/Procedures", 400)
+list_functions:add_column("¡ËFunctions/Procedures¡Ë", 400)
 tab0:add(list_functions, "bottom", list_dir_height)
 
 local list_dir = gui.list()
@@ -141,6 +141,8 @@ tab0:context_menu {
 }
 -------------------------
 local tab1 = gui.panel(panel_width + 18)
+local memo_proj_path = gui.memo()
+tab1:add(memo_proj_path, "top", 23)
 
 local list_project = gui.list()
 tab1:client(list_project)
@@ -187,10 +189,16 @@ local project_path  = ''
 local cur_proj_path = ''
 
 local function FileMan_ShowPath()
-	local rtf = [[{\rtf\ansi\ansicpg1251{\fonttbl{\f0\fcharset204 Helv;}}{\colortbl;\red0\green0\blue255;\red255\green0\blue0;}\f0\fs16]]
+	local rtf = [[{\rtf\ansi\ansicpg1251{\fonttbl{\f0\fcharset65001 Arial;}}{\colortbl;\red0\green0\blue255;\red255\green0\blue0;}\f0\fs16]]
 	local path = '\\cf1'..current_path:gsub('\\', '\\\\')
 	local mask = '\\cf2'..file_mask..'}'
 	memo_path:set_text(rtf..path..mask)
+end
+
+local function Project_ShowPath()
+	local rtf = [[{\rtf\ansi\ansicpg1251{\fonttbl{\f0\fcharset65001 Arial;}}{\colortbl;\red0\green0\blue0;}\f0\fs16]]
+	local path = '\\cf1'..cur_proj_path:gsub('\\', '\\\\')
+	memo_proj_path:set_text(rtf..path)
 end
 
 ----------------------------------------------------------
@@ -428,6 +436,7 @@ local function Project_ListFILL()
 		end
 	end
 	list_project:set_selected_item(0)
+    Project_ShowPath()
 end
 
 local function Project_GetSelectedItem()
