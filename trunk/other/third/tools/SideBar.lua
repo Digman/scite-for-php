@@ -183,7 +183,8 @@ end
 ----------------------------------------------------------
 local current_path = ''
 local file_mask = '*.*'
-local project_path = ''
+local project_path  = ''
+local cur_proj_path = ''
 
 local function FileMan_ShowPath()
 	local rtf = [[{\rtf\ansi\ansicpg1251{\fonttbl{\f0\fcharset204 Helv;}}{\colortbl;\red0\green0\blue255;\red255\green0\blue0;}\f0\fs16]]
@@ -410,15 +411,18 @@ end)
 
 local function Project_ListFILL()
 	if project_path == '' then return end
-	local folders = gui.files(project_path..'*', true)
+    if cur_proj_path == '' then cur_proj_path = project_path end
+	local folders = gui.files(cur_proj_path..'*', true)
 	if not folders then return end
     list_project:add_column(project_path,600)
 	list_project:clear()
-	list_project:add_item ('[..]', {'..','d'})
+    if cur_proj_path ~= project_path then
+        list_project:add_item ('[..]', {'..','d'})
+    end
 	for i, d in ipairs(folders) do
 		list_project:add_item('['..d..']', {d,'d'})
 	end
-	local files = gui.files(project_path..file_mask)
+	local files = gui.files(cur_proj_path..file_mask)
 	if files then
 		for i, filename in ipairs(files) do
 			list_project:add_item(filename, {filename})
@@ -442,15 +446,16 @@ local function Project_OpenItem()
 	if attr == 'd' then
 		gui.chdir(dir_or_file)
 		if dir_or_file == '..' then
-			local new_path = project_path:gsub('(.*\\).*\\$', '%1')
+			local new_path = cur_proj_path:gsub('(.*\\).*\\$', '%1')
 			if not gui.files(new_path..'*',true) then return end
-			project_path = new_path
+			cur_proj_path = new_path
 		else
-			project_path = project_path..dir_or_file..'\\'
+			cur_proj_path = cur_proj_path..dir_or_file..'\\'
 		end
+        
 		Project_ListFILL()
 	else
-		OpenFile(project_path..dir_or_file)
+		OpenFile(cur_proj_path..dir_or_file)
 	end
 end
 
