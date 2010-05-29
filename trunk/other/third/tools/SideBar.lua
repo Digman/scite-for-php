@@ -142,7 +142,7 @@ tab0:context_menu {
 -------------------------
 local tab1 = gui.panel(panel_width + 18)
 
-local list_project = gui.list(true)
+local list_project = gui.list()
 tab1:client(list_project)
 
 tab1:context_menu {
@@ -414,7 +414,6 @@ local function Project_ListFILL()
     if cur_proj_path == '' then cur_proj_path = project_path end
 	local folders = gui.files(cur_proj_path..'*', true)
 	if not folders then return end
-    list_project:add_column(project_path,600)
 	list_project:clear()
     if cur_proj_path ~= project_path then
         list_project:add_item ('[..]', {'..','d'})
@@ -479,6 +478,7 @@ function Open_Project_Dir()
 	else
 		project_path = Path .. '\\'
 	end
+    cur_proj_path = project_path
     Project_Save_Path()
 end
 
