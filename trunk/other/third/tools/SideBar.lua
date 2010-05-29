@@ -143,7 +143,6 @@ tab0:context_menu {
 local tab1 = gui.panel(panel_width + 18)
 
 local list_project = gui.list(true)
---list_project:add_column("Project files", 600)
 tab1:client(list_project)
 
 tab1:context_menu {
@@ -413,8 +412,8 @@ local function Project_ListFILL()
 	if project_path == '' then return end
 	local folders = gui.files(project_path..'*', true)
 	if not folders then return end
+    list_project:add_column(project_path,600)
 	list_project:clear()
-    list_project:add_column(project_path, 600)
 	list_project:add_item ('[..]', {'..','d'})
 	for i, d in ipairs(folders) do
 		list_project:add_item('['..d..']', {d,'d'})
@@ -469,30 +468,35 @@ list_project:on_key(function(key)
 end)
 
 function Open_Project_Dir()
-    local Path = gui.select_dir_dlg('Please select a directory', project_path)
+    local Path = gui.select_dir_dlg('Please select a directory')
 	if Path == nil then return end
 	if Path:match('[\\/]$') then
 		project_path = Path
 	else
 		project_path = Path .. '\\'
 	end
-    Project_ListFILL()
     Project_Save_Path()
+    Project_ListFILL()
 end
 
 function Project_Save_Path()
     if project_path =='' then end
-    file = io.open(props["SciteUserHome"] .."\\SciTE.prej","w")
-    file:write(project_path)
-    file:close() 
+    local file = io.open(props["SciteUserHome"] .."\\SciTE.prej","w")
+    if(file ~= nil) then
+        file:write(project_path)
+        file:close() 
+    end
 end
 
 function Project_Get_Store_Path()
-    file = io.open(props["SciteUserHome"] .."\\SciTE.prej", "r") 
-    ourline = file:read() 
-    if ourline ~=nil then 
-        project_path =  ourline
-        Project_ListFILL()
+    local file = io.open(props["SciteUserHome"] .."\\SciTE.prej", "r") 
+    if(file ~= nil) then
+        local ourline = file:read() 
+        if ourline ~=nil then 
+            project_path =  ourline
+            Project_ListFILL()
+        end
+        file:close()
     end
 end
 
