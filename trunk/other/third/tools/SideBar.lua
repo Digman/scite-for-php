@@ -172,11 +172,15 @@ win_parent:client(tab1)
 win_parent:client(tab0)
 
 if tonumber(props['sidebar.show'])==1 then
+    local position = 'right'
+    if props['sidebar.position'] ~= nil then 
+        position = props['sidebar.position'];
+    end  
 	if win then
 		win_parent:size(panel_width + 24, 600)
 		win_parent:show()
 	else
-		gui.set_panel(win_parent,"right")
+		gui.set_panel(win_parent,position)
 	end
 end
 
@@ -1071,6 +1075,10 @@ tabs:on_select(function(ind)
 end)
 
 function SideBar_ShowHide()
+    local position = 'right'
+    if props['sidebar.position'] ~= nil then 
+        position = props['sidebar.position'];
+    end    
 	if tonumber(props['sidebar.show'])==1 then
 		if win then
 			win_parent:hide()
@@ -1082,7 +1090,7 @@ function SideBar_ShowHide()
 		if win then
 			win_parent:show()
 		else
-			gui.set_panel(win_parent,"right")
+			gui.set_panel(win_parent,position)
 		end
 		props['sidebar.show']=1
 		OnSwitch()
