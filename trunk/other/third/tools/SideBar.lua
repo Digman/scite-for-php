@@ -429,11 +429,13 @@ local function Project_ListFILL()
 	for i, d in ipairs(folders) do
 		list_project:add_item('['..d..']', {d,'d'})
 	end
+    folders = nil
 	local files = gui.files(cur_proj_path..file_mask)
 	if files then
 		for i, filename in ipairs(files) do
 			list_project:add_item(filename, {filename})
 		end
+        files = nil
 	end
 	list_project:set_selected_item(0)
     Project_ShowPath()
