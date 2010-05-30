@@ -474,6 +474,7 @@ list_project:on_key(function(key)
 	if key == 13 then -- Enter
 		Project_OpenItem()
 	elseif key == 8 then -- BackSpace
+        --if project_path == cur_proj_path then end
 		list_project:set_selected_item(0)
 		Project_OpenItem()
     end
@@ -493,7 +494,7 @@ end
 
 function Project_Save_Path()
     if project_path =='' then end
-    local file = io.open(props["SciteUserHome"] .."\\SciTE.prej","w")
+    local file = io.open(props["SciteUserHome"] .."\\SciTE.project","w")
     if(file ~= nil) then
         file:write(project_path)
         file:close() 
@@ -502,7 +503,7 @@ function Project_Save_Path()
 end
 
 function Project_Get_Store_Path()
-    local file = io.open(props["SciteUserHome"] .."\\SciTE.prej", "r") 
+    local file = io.open(props["SciteUserHome"] .."\\SciTE.project", "r") 
     if(file ~= nil) then
         local ourline = file:read() 
         if ourline ~=nil then 
