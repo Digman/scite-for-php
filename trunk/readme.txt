@@ -1,14 +1,14 @@
-SciTE/PHP½»Á÷Èº£º16820754 £¬Email£ºifoosharp@gmail.com
+ï»¿SciTE/PHPäº¤æµç¾¤ï¼š16820754 ï¼ŒEmailï¼šifoosharp@gmail.com
 =================================
-SciTE For PHPÖ÷Òª¸Ä½ø£º
-  1¡¢ÓÒ¼ü²Ëµ¥³£ÓÃ²Ù×÷Ïî;
-  2¡¢ÎÄ¼þ/ÏîÄ¿/º¯Êý¹ÜÀíµÄ²à±ßÀ¸;ÔÚ²à±ßÀ¸µÄÎÄ¼þ¹ÜÀíÖÐµãÓÒ¼ü¿ÉÒÔÐÂ½¨ÎÄ¼þ£¬Èç¹ûÓÐÑ¡¶¨µÄÁËÎÄ¼þ£¬¿ÉÒÔÐÂ½¨ÓëÖ®ÀàÐÍÏàÍ¬µÄÎÄ¼þ;
-  3¡¢Ôö¼ÓÑÕÉ«Ñ¡ÔñÆ÷,±ãÓÚµ÷ÕûÑÕÉ«;
-  4¡¢phpºÍhtmlÒ³Ãæ¿ÉÒÔÔÚ°´F12¼üÔÚä¯ÀÀÆ÷ÖÐÔ¤ÀÀ£¬Èç¹ûphpÎÄ¼þÃ»ÓÐÔÚweb·þÎñÆ÷¸ùÄ¿Â¼ÏÂ£¬Ôò»áÌáÊ¾¿½±´ÁÙÊ±ÎÄ¼þµ½¸ùÄ¿Â¼ÏÂ£¬ÀûÓÃlocalhostä¯ÀÀ;
-  5¡¢×Ô¶¯Ê¶±ðUTF8±àÂë,´ò¿ªÒ³Ãæ²»ÔÙ³öÏÖÂÒÂëÁË;
-  6¡¢ÓÒ¼üÔö¼Ó¼òµ¥µÄÌø×ªµ½µ±Ç°Ò³class¡¢function¡¢const¡¢variables¶¨ÒåµÄ²Ëµ¥Ïî;
-  7¡¢Ìí¼Ó¶ÔSVNµÄÖ§³Ö£¬²»¹ýÒªÇó°²×°TortoiseSVN;
-  8¡¢×Ô¶¯PHP Documentor×¢ÊÍ¹¦ÄÜ;
-  9¡¢ÆäËûÒ»Ð©ÈËÐÔ»¯µÄ¸Ä½ø¡£
+SciTE For PHPä¸»è¦æ”¹è¿›ï¼š
+  1ã€å³é”®èœå•å¸¸ç”¨æ“ä½œé¡¹;
+  2ã€æ–‡ä»¶/é¡¹ç›®/å‡½æ•°ç®¡ç†çš„ä¾§è¾¹æ ;åœ¨ä¾§è¾¹æ çš„æ–‡ä»¶ç®¡ç†ä¸­ç‚¹å³é”®å¯ä»¥æ–°å»ºæ–‡ä»¶ï¼Œå¦‚æžœæœ‰é€‰å®šçš„äº†æ–‡ä»¶ï¼Œå¯ä»¥æ–°å»ºä¸Žä¹‹ç±»åž‹ç›¸åŒçš„æ–‡ä»¶;
+  3ã€å¢žåŠ é¢œè‰²é€‰æ‹©å™¨,ä¾¿äºŽè°ƒæ•´é¢œè‰²;
+  4ã€phpå’Œhtmlé¡µé¢å¯ä»¥åœ¨æŒ‰F12é”®åœ¨æµè§ˆå™¨ä¸­é¢„è§ˆï¼Œå¦‚æžœphpæ–‡ä»¶æ²¡æœ‰åœ¨webæœåŠ¡å™¨æ ¹ç›®å½•ä¸‹ï¼Œåˆ™ä¼šæç¤ºæ‹·è´ä¸´æ—¶æ–‡ä»¶åˆ°æ ¹ç›®å½•ä¸‹ï¼Œåˆ©ç”¨localhostæµè§ˆ;
+  5ã€è‡ªåŠ¨è¯†åˆ«UTF8ç¼–ç ,æ‰“å¼€é¡µé¢ä¸å†å‡ºçŽ°ä¹±ç äº†;
+  6ã€å³é”®å¢žåŠ ç®€å•çš„è·³è½¬åˆ°å½“å‰é¡µclassã€functionã€constã€variableså®šä¹‰çš„èœå•é¡¹;
+  7ã€æ·»åŠ å¯¹SVNçš„æ”¯æŒï¼Œä¸è¿‡è¦æ±‚å®‰è£…TortoiseSVN;
+  8ã€è‡ªåŠ¨PHP Documentoræ³¨é‡ŠåŠŸèƒ½;
+  9ã€å…¶ä»–ä¸€äº›äººæ€§åŒ–çš„æ”¹è¿›ã€‚
 
 Source:  http://code.google.com/p/scite-for-php/
