@@ -215,12 +215,12 @@ local function FileMan_ListFILL()
 	list_dir:clear()
 	list_dir:add_item ('[..]', {'..','d'})
 	for i, d in ipairs(folders) do
-		list_dir:add_item('['..d..']', {d,'d'})
+		list_dir:add_item(d, {d,'d'})
 	end
 	local files = gui.files(current_path..file_mask)
 	if files then
 		for i, filename in ipairs(files) do
-			list_dir:add_item(filename, {filename})
+			list_dir:add_item(filename .. '*', {filename})
 		end
 	end
 	list_dir:set_selected_item(0)
@@ -427,24 +427,22 @@ local function Project_ListFILL()
 	local folders = gui.files(cur_proj_path..'*', true)
 	if not folders then return end
 	list_project:clear()
-    local depth  = 0;
-    local parent = ''
     --this_path = string.gsub(cur_proj_path,project_path,localhost)
     if cur_proj_path ~= project_path then
-        list_project:add_item ('..', {'..','d'})
+        list_project:add_item ('[..]', {'..','d'})
     end
 	for i, d in ipairs(folders) do
-		list_project:add_item('[+]' .. d, {d,'d',parent,depth})
+		list_project:add_item(d, {d,'d'})
 	end
     folders = nil
 	local files = gui.files(cur_proj_path..file_mask)
 	if files then
 		for i, filename in ipairs(files) do
-			list_project:add_item(filename .. '[*]', {filename,'f',parent,depth})
+			list_project:add_item(filename .. '*', {filename})
 		end
         files = nil
 	end
-	list_project:set_selected_item(0)
+	--list_project:set_selected_item(0)
     Project_ShowPath()
 end
 
@@ -461,7 +459,7 @@ end
 local function Project_OpenItem()
 	local dir_or_file, attr, parent = Project_GetSelectedItem()
 	if dir_or_file == '' then return end
-    print(parent)
+    --print(parent)
 	if attr == 'd' then
 		gui.chdir(dir_or_file)
 		if dir_or_file == '..' then
