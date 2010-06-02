@@ -427,17 +427,20 @@ local function Project_ListFILL()
 	local folders = gui.files(cur_proj_path..'*', true)
 	if not folders then return end
 	list_project:clear()
+    local depth  = 0;
+    local parent = ''
+    --this_path = string.gsub(cur_proj_path,project_path,localhost)
     if cur_proj_path ~= project_path then
-        list_project:add_item ('[..]', {'..','d'})
+        list_project:add_item ('..', {'..','d'})
     end
 	for i, d in ipairs(folders) do
-		list_project:add_item('['..d..']', {d,'d'})
+		list_project:add_item('[+]' .. d, {d,'d',parent,depth})
 	end
     folders = nil
 	local files = gui.files(cur_proj_path..file_mask)
 	if files then
 		for i, filename in ipairs(files) do
-			list_project:add_item(filename, {filename})
+			list_project:add_item(filename .. '[*]', {filename,'f',parent,depth})
 		end
         files = nil
 	end
@@ -451,12 +454,14 @@ local function Project_GetSelectedItem()
 	local data = list_project:get_item_data(idx)
 	local dir_or_file = data[1]
 	local attr = data[2]
-	return dir_or_file, attr
+    local parent = data[3]
+	return dir_or_file, attr, parent
 end
 
 local function Project_OpenItem()
-	local dir_or_file, attr = Project_GetSelectedItem()
+	local dir_or_file, attr, parent = Project_GetSelectedItem()
 	if dir_or_file == '' then return end
+    print(parent)
 	if attr == 'd' then
 		gui.chdir(dir_or_file)
 		if dir_or_file == '..' then
