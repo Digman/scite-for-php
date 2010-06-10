@@ -12,3 +12,6 @@ SciTE For PHP主要改进：
   9、其他一些人性化的改进。
 
 Source:  http://code.google.com/p/scite-for-php/
+
+字体不清晰的解决办法：
+http://hi.baidu.com/it198/blog/item/85edac44b84e1a89b2b7dcd1.html
