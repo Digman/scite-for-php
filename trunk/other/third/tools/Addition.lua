@@ -1,5 +1,25 @@
 --scite_Command 'Edit Colour|edit_colour|Ctrl+Shift+C'
+require 'iconv'
+--------------------------
+-- 编码转换
+--------------------------
+function charset_iconv(in_charset, out_charset, text)
+  local cd = iconv.new(out_charset .. "//TRANSLIT", in_charset)
+  local cd = iconv.open(in_charset, out_charset)
+  assert(cd, "Failed to create a converter object.")
+  local text_out, err = cd:iconv(text)
 
+  if err == iconv.ERROR_INCOMPLETE then
+    print("ICONV ERROR: Incomplete input.")
+  elseif err == iconv.ERROR_INVALID then
+    print("ICONV ERROR: Invalid input.")
+  elseif err == iconv.ERROR_NO_MEMORY then
+    print("ICONV ERROR: Failed to allocate memory.")
+  elseif err == iconv.ERROR_UNKNOWN then
+    print("ICONV ERROR: There was an unknown error.")
+  end
+  return text_out 
+end
 --------------------------
 -- 编辑颜色
 --------------------------
@@ -69,4 +89,19 @@ function OnCheckUTF()
             IsUTF8()
         end
 	end    
+end
+--------------------------
+-- 切换输出区码
+--------------------------
+function switch_encoding()
+    if props['output.code.page'] == '65001' then
+        scite.MenuCommand(IDM_ENCODING_DEFAULT)
+        props['code.page'] = '936'
+        props['output.code.page'] = '936'
+    else
+        scite.MenuCommand(IDM_ENCODING_UCOOKIE)
+        props['code.page'] = '65001'
+        props['output.code.page'] = '65001'
+    end
+    scite.UpdateStatusBar() 
 end
