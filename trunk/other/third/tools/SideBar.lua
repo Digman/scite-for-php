@@ -22,7 +22,6 @@ version 1.10.3
 require 'lpeg'
 require 'gui'
 require 'shell'
-require 'iconv'
 
 -- you can choose to make it a stand-alone window; just uncomment this line:
 -- local win = true
