@@ -20,6 +20,7 @@ end
 
 local on_open_handlers = {
     function (filename)
+        OnCheckUTF() --check utf8 code
     end,
     function (filename)
     end
@@ -30,6 +31,15 @@ function OnOpen(filename)
     end
 end
 
+function OnClose(filename)
+end
+function OnSwitchFile(filename)
+    update_status_bar()
+end
+function OnSave(filename)
+end
+function OnBeforeSave(filename)
+end
 
 -- 选择单词
 function select_word()

@@ -77,6 +77,7 @@ local function IsUTF8()
 	local searchpatt = latin^0 * utf8 ^1 * -1
 	if searchpatt:match(text) then
 		scite.MenuCommand(IDM_ENCODING_UCOOKIE)
+        update_status_bar()
 	end
 end
 
@@ -91,17 +92,27 @@ function OnCheckUTF()
 	end    
 end
 --------------------------
--- 切换输出区码
+-- 转换输出区码
 --------------------------
 function switch_encoding()
-    if props['output.code.page'] == '65001' then
+    scite.MenuCommand(IDM_SELECTALL)
+    scite.MenuCommand(IDM_COPY)
+    if editor.CodePage == SC_CP_UTF8 then
         scite.MenuCommand(IDM_ENCODING_DEFAULT)
-        props['code.page'] = '936'
-        props['output.code.page'] = '936'
     else
         scite.MenuCommand(IDM_ENCODING_UCOOKIE)
-        props['code.page'] = '65001'
-        props['output.code.page'] = '65001'
     end
-    scite.UpdateStatusBar() 
+    scite.MenuCommand(IDM_PASTE)
+    update_status_bar()
+end
+--------------------------
+-- 更新状态栏编码
+--------------------------
+function update_status_bar()
+    if editor.CodePage == SC_CP_UTF8 then
+        props['statusbar.codepage'] = '65001'
+    else
+        props['statusbar.codepage'] = '936'
+    end
+    scite.UpdateStatusBar()
 end

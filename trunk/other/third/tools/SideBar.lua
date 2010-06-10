@@ -222,12 +222,12 @@ local function FileMan_ListFILL()
 	list_dir:clear()
 	list_dir:add_item ('[..]', {'..','d'})
 	for i, d in ipairs(folders) do
-		list_dir:add_item(d, {d,'d'})
+		list_dir:add_item(d .. '', {d,'d'})
 	end
 	local files = gui.files(current_path..file_mask)
 	if files then
 		for i, filename in ipairs(files) do
-			list_dir:add_item(filename .. '*', {filename})
+			list_dir:add_item(filename .. '', {filename})
 		end
 	end
 	list_dir:set_selected_item(0)
@@ -439,13 +439,13 @@ local function Project_ListFILL()
         list_project:add_item ('[..]', {'..','d'})
     end
 	for i, d in ipairs(folders) do
-		list_project:add_item(d, {d,'d'})
+		list_project:add_item(d .. '', {d,'d'})
 	end
     folders = nil
 	local files = gui.files(cur_proj_path..file_mask)
 	if files then
 		for i, filename in ipairs(files) do
-			list_project:add_item(filename .. '*', {filename})
+			list_project:add_item(filename .. '', {filename,'f'})
 		end
         files = nil
 	end
@@ -1135,7 +1135,6 @@ function OnOpen(file)
 	local result
 	if old_OnOpen then result = old_OnOpen(file) end
 	OnSwitch()
-    OnCheckUTF() --check utf8 code
 	return result
 end
 
