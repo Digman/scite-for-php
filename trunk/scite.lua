@@ -74,9 +74,3 @@ dofile (props["SciteDefaultHome"].."\\other\\third\\tools\\COMMON.lua")
 dofile (props["SciteDefaultHome"].."\\other\\third\\tools\\Addition.lua")
 -- SideBar.lua
 dofile (props["SciteDefaultHome"].."\\other\\third\\tools\\SideBar.lua")
-
-
-
-
-
-

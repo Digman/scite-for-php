@@ -22,6 +22,7 @@ version 1.10.3
 require 'lpeg'
 require 'gui'
 require 'shell'
+require 'iconv'
 
 -- you can choose to make it a stand-alone window; just uncomment this line:
 -- local win = true
@@ -110,7 +111,7 @@ tab0:add(memo_path, "top", 22)
 local list_dir_height = win_height/3
 if list_dir_height <= 0 then list_dir_height = 320 end
 local list_functions = gui.list(true)
-list_functions:add_column("¡ËFunctions/Procedures¡Ë", 400)
+list_functions:add_column("Functions/Procedures", 400)
 tab0:add(list_functions, "bottom", list_dir_height)
 
 local list_dir = gui.list()
@@ -184,6 +185,13 @@ if tonumber(props['sidebar.show'])==1 then
 	end
 end
 
+local foreground = props['sidebar.foreground'];
+local background = props['sidebar.background'];
+if foreground ~= '' and background ~= '' then
+    list_dir:set_list_colour(foreground, background)
+    list_functions:set_list_colour(foreground, background)
+    list_project:set_list_colour(foreground,background)
+end
 ----------------------------------------------------------
 -- tab0:memo_path   Path and Mask
 ----------------------------------------------------------
