@@ -35,6 +35,19 @@ local panel_width = 200
 local win_height = props['position.height']
 if win_height == '' then win_height = 600 end
 
+local style   = props['style.*.32']
+local foreground = props['sidebar.foreground'];
+local background = props['sidebar.background'];
+if not background then
+    background = style:match('back:(#%x%x%x%x%x%x)')
+end
+if background then
+    if not foreground then
+        foreground = style:match('fore:(#%x%x%x%x%x%x)')
+    end
+	if foreground == nil then foreground = '' end
+end
+
 ----------------------------------------------------------
 -- Common functions
 ----------------------------------------------------------
@@ -109,12 +122,15 @@ tab0:add(memo_path, "top", 22)
 
 local list_dir_height = win_height/3
 if list_dir_height <= 0 then list_dir_height = 320 end
+
 local list_functions = gui.list(true)
 list_functions:add_column("Functions/Procedures", 400)
 tab0:add(list_functions, "bottom", list_dir_height)
+if background then list_functions:set_list_colour(foreground,background) end
 
 local list_dir = gui.list()
 tab0:client(list_dir)
+if background then list_dir:set_list_colour(foreground,background) end
 
 tab0:context_menu {
 	'New File\tCtrl+Alt+N|FileMan_NewFile',
@@ -146,6 +162,7 @@ tab1:add(memo_proj_path, "top", 23)
 
 local list_project = gui.list()
 tab1:client(list_project)
+if background then list_project:set_list_colour(foreground,background) end
 
 tab1:context_menu {
     'Open Dir As Project|Open_Project_Dir',
@@ -156,6 +173,15 @@ tab1:context_menu {
     '',
     'Hide SideBar|SideBar_ShowHide',
 }
+
+------------------------
+
+local tab2 = gui.panel(panel_width + 18)
+local list_abbrev = gui.list(true)
+list_abbrev:add_column("Abbrev", 60)
+list_abbrev:add_column("Expansion", 600)
+tab2:client(list_abbrev)
+if background then list_abbrev:set_list_colour(foreground,background) end
 
 -------------------------
 local win_parent
@@ -168,6 +194,8 @@ end
 local tabs = gui.tabbar(win_parent)
 tabs:add_tab("Files", tab0)
 tabs:add_tab("Project", tab1)
+tabs:add_tab("Abbrev", tab2)
+win_parent:client(tab2)
 win_parent:client(tab1)
 win_parent:client(tab0)
 
@@ -182,14 +210,6 @@ if tonumber(props['sidebar.show'])==1 then
 	else
 		gui.set_panel(win_parent,position)
 	end
-end
-
-local foreground = props['sidebar.foreground'];
-local background = props['sidebar.background'];
-if foreground ~= '' and background ~= '' then
-    list_dir:set_list_colour(foreground, background)
-    list_functions:set_list_colour(foreground, background)
-    list_project:set_list_colour(foreground,background)
 end
 ----------------------------------------------------------
 -- tab0:memo_path   Path and Mask
@@ -221,6 +241,7 @@ local function FileMan_ListFILL()
 	if not folders then return end
 	list_dir:clear()
 	list_dir:add_item ('[..]', {'..','d'})
+    
 	for i, d in ipairs(folders) do
 		list_dir:add_item(d .. '', {d,'d'})
 	end
@@ -1059,6 +1080,85 @@ list_functions:on_key(function(key)
 end)
 
 ----------------------------------------------------------
+-- tab2:list_abbrev   Abbreviations
+----------------------------------------------------------
+local function Abbreviations_ListFILL()
+	local function ReadAbbrev(file)
+		local abbrev_file = io.open(file)
+		if abbrev_file then
+			for line in abbrev_file:lines() do
+				if line ~= '' then
+					local _abr, _exp = line:match('^([^#].-)=(.+)')
+					if _abr ~= nil then
+						list_abbrev:add_item({_abr, _exp}, _exp)
+					else
+						local import_file = line:match('^import%s+(.+)')
+						if import_file ~= nil then
+							ReadAbbrev(file:match('.+\\')..import_file)
+						end
+					end
+				end
+			end
+			abbrev_file:close()
+		end
+	end
+	list_abbrev:clear()
+	local abbrev_filename = props['SciteDefaultHome'] .. "/lang/" .. props['FileExt'] .."/".. props['FileExt']  ..".abbrev"
+	ReadAbbrev(abbrev_filename)
+end
+
+local function InsertAbbreviation(expansion)
+        begin_pos     = editor.CurrentPos
+        local curline = scite.SendEditor(SCI_LINEFROMPOSITION, begin_pos)
+        local indent  = scite.SendEditor(SCI_GETLINEINDENTATION, curline)
+        local lines   = 0
+        expansion, lines = expansion:gsub('\\n','\n')
+        editor:AddText(expansion)
+        local b, e = editor:findtext('|', 0, -1)
+        if b ~= nil and e ~= nil then
+            editor:SetSel(b, e)
+            editor:ReplaceSel('')
+        end
+        for i = 1, lines do
+            local line_indent = scite.SendEditor(SCI_GETLINEINDENTATION, curline + i)
+            scite.SendEditor(SCI_SETLINEINDENTATION, curline + i, indent + line_indent)
+        end 
+end
+
+local function Abbreviations_InsertExpansion()
+	local sel_item = list_abbrev:get_selected_item()
+	if sel_item == -1 then return end
+	local expansion = list_abbrev:get_item_data(sel_item)
+	--scite.InsertAbbreviation(expansion)
+    InsertAbbreviation(expansion)
+	gui.pass_focus()
+	editor:CallTipCancel()
+end
+
+local function Abbreviations_ShowExpansion()
+	local sel_item = list_abbrev:get_selected_item()
+	if sel_item == -1 then return end
+	local expansion = list_abbrev:get_item_data(sel_item)
+	expansion = expansion:gsub('\\\\','\4'):gsub('\\r','\r'):gsub('(\\n','\n'):gsub('\\t','\t'):gsub('\4','\\')
+	editor:CallTipCancel()
+	editor:CallTipShow(editor.CurrentPos, expansion)
+end
+
+list_abbrev:on_double_click(function()
+	Abbreviations_InsertExpansion()
+end)
+
+list_abbrev:on_select(function()
+	Abbreviations_ShowExpansion()
+end)
+
+list_abbrev:on_key(function(key)
+	if key == 13 then -- Enter
+		Abbreviations_InsertExpansion()
+	end
+end)
+
+----------------------------------------------------------
 -- Events
 ----------------------------------------------------------
 local function OnSwitch()
@@ -1075,6 +1175,8 @@ local function OnSwitch()
 		Functions_ListFILL()
 	elseif tab1:bounds() then -- visible Project
 		Project_Get_Store_Path()
+    elseif tab2:bounds() then -- visible Abbrev
+		Abbreviations_ListFILL()
 	end
 	_DEBUG.timerstop('OnSwitch')
 end
