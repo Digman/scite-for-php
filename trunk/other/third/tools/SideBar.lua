@@ -1090,7 +1090,7 @@ local function Abbreviations_ListFILL()
 				if line ~= '' then
 					local _abr, _exp = line:match('^([^#].-)=(.+)')
 					if _abr ~= nil then
-						list_abbrev:add_item({_abr, _exp}, _exp)
+						list_abbrev:add_item({_abr, _exp}, {_abr, _exp})
 					else
 						local import_file = line:match('^import%s+(.+)')
 						if import_file ~= nil then
@@ -1107,30 +1107,13 @@ local function Abbreviations_ListFILL()
 	ReadAbbrev(abbrev_filename)
 end
 
-local function InsertAbbreviation(expansion)
-        begin_pos     = editor.CurrentPos
-        local curline = scite.SendEditor(SCI_LINEFROMPOSITION, begin_pos)
-        local indent  = scite.SendEditor(SCI_GETLINEINDENTATION, curline)
-        local lines   = 0
-        expansion, lines = expansion:gsub('\\n','\n')
-        editor:AddText(expansion)
-        local b, e = editor:findtext('|', 0, -1)
-        if b ~= nil and e ~= nil then
-            editor:SetSel(b, e)
-            editor:ReplaceSel('')
-        end
-        for i = 1, lines do
-            local line_indent = scite.SendEditor(SCI_GETLINEINDENTATION, curline + i)
-            scite.SendEditor(SCI_SETLINEINDENTATION, curline + i, indent + line_indent)
-        end 
-end
-
 local function Abbreviations_InsertExpansion()
+	local begin = 0
 	local sel_item = list_abbrev:get_selected_item()
 	if sel_item == -1 then return end
-	local expansion = list_abbrev:get_item_data(sel_item)
-	--scite.InsertAbbreviation(expansion)
-    InsertAbbreviation(expansion)
+	local abbrev = list_abbrev:get_item_data(sel_item)
+	editor:AddText(abbrev[1])
+	scite.MenuCommand(IDM_ABBREV)	
 	gui.pass_focus()
 	editor:CallTipCancel()
 end
@@ -1138,7 +1121,8 @@ end
 local function Abbreviations_ShowExpansion()
 	local sel_item = list_abbrev:get_selected_item()
 	if sel_item == -1 then return end
-	local expansion = list_abbrev:get_item_data(sel_item)
+	local abbrev = list_abbrev:get_item_data(sel_item)
+    expansion = abbrev[2]
 	expansion = expansion:gsub('\\\\','\4'):gsub('\\r','\r'):gsub('(\\n','\n'):gsub('\\t','\t'):gsub('\4','\\')
 	editor:CallTipCancel()
 	editor:CallTipShow(editor.CurrentPos, expansion)
