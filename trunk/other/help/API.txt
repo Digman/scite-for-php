@@ -142,3 +142,10 @@ $(1) $(2) $(3) $(4)，四个参数，在 view -> parameters 里设置，之后�
 5. Sintilla.iface 里的常量、函数(挂到 pane 上做为方法)
 6. Lua API
 
+
+AutoCActive() = bool\n Is there an auto-completion list visible?
+AutoCCancel()\n Remove the auto-completion list from the screen.
+
+CallTipActive() = bool\n Is there an active call tip?
+CallTipCancel()\n Remove the call tip from the screen.
+
