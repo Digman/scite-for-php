@@ -1,0 +1,554 @@
+Index: scintilla/include/SciLexer.h
+===================================================================
+--- scintilla/include/SciLexer.h	(版本 42)
++++ scintilla/include/SciLexer.h	(工作副本)
+@@ -280,6 +280,10 @@
+ #define SCE_HP_DEFNAME 100
+ #define SCE_HP_OPERATOR 101
+ #define SCE_HP_IDENTIFIER 102
++#define SCE_HPHP_WORD1 103
++#define SCE_HPHP_WORD2 89
++#define SCE_HPHP_WORD3 88
++#define SCE_HPHP_WORD4 79
+ #define SCE_HPHP_COMPLEX_VARIABLE 104
+ #define SCE_HPA_START 105
+ #define SCE_HPA_DEFAULT 106
+@@ -297,7 +301,7 @@
+ #define SCE_HPHP_DEFAULT 118
+ #define SCE_HPHP_HSTRING 119
+ #define SCE_HPHP_SIMPLESTRING 120
+-#define SCE_HPHP_WORD 121
++#define SCE_HPHP_IDENTIFIER 121
+ #define SCE_HPHP_NUMBER 122
+ #define SCE_HPHP_VARIABLE 123
+ #define SCE_HPHP_COMMENT 124
+Index: scintilla/include/Scintilla.iface
+===================================================================
+--- scintilla/include/Scintilla.iface	(版本 42)
++++ scintilla/include/Scintilla.iface	(工作副本)
+@@ -2496,6 +2496,10 @@
+ val SCE_HP_OPERATOR=101
+ val SCE_HP_IDENTIFIER=102
+ # PHP
++val SCE_HPHP_WORD1=103
++val SCE_HPHP_WORD2=89
++val SCE_HPHP_WORD3=88
++val SCE_HPHP_WORD4=79
+ val SCE_HPHP_COMPLEX_VARIABLE=104
+ # ASP Python
+ val SCE_HPA_START=105
+@@ -2515,7 +2519,7 @@
+ val SCE_HPHP_DEFAULT=118
+ val SCE_HPHP_HSTRING=119
+ val SCE_HPHP_SIMPLESTRING=120
+-val SCE_HPHP_WORD=121
++val SCE_HPHP_IDENTIFIER=121
+ val SCE_HPHP_NUMBER=122
+ val SCE_HPHP_VARIABLE=123
+ val SCE_HPHP_COMMENT=124
+Index: scintilla/src/LexHTML.cxx
+===================================================================
+--- scintilla/src/LexHTML.cxx	(版本 42)
++++ scintilla/src/LexHTML.cxx	(工作副本)
+@@ -384,16 +384,22 @@
+ 
+ // Update the word colour to default or keyword
+ // Called when in a PHP word
+-static void classifyWordHTPHP(unsigned int start, unsigned int end, WordList &keywords, Accessor &styler) {
+-	char chAttr = SCE_HPHP_DEFAULT;
++static void classifyWordHTPHP(unsigned int start, unsigned int end, WordList *keywordlists[], Accessor &styler) {
++	char chAttr = SCE_HPHP_IDENTIFIER;
+ 	bool wordIsNumber = IsADigit(styler[start]) || (styler[start] == '.' && start+1 <= end && IsADigit(styler[start+1]));
+ 	if (wordIsNumber)
+ 		chAttr = SCE_HPHP_NUMBER;
+ 	else {
+ 		char s[100];
+ 		GetTextSegment(styler, start, end, s, sizeof(s));
+-		if (keywords.InList(s))
+-			chAttr = SCE_HPHP_WORD;
++		if (keywordlists[4]->InList(s))
++			chAttr = SCE_HPHP_WORD1;
++        else if (keywordlists[6]->InList(s))
++            chAttr = SCE_HPHP_WORD2;
++        else if (keywordlists[7]->InList(s))
++            chAttr = SCE_HPHP_WORD3;
++        else if (keywordlists[8]->InList(s))
++            chAttr = SCE_HPHP_WORD4;
+ 	}
+ 	styler.ColourTo(end, chAttr);
+ }
+@@ -1122,8 +1128,9 @@
+ 			case SCE_HP_WORD:
+ 				classifyWordHTPy(styler.GetStartSegment(), i - 1, keywords4, styler, prevWord, inScriptType);
+ 				break;
+-			case SCE_HPHP_WORD:
+-				classifyWordHTPHP(styler.GetStartSegment(), i - 1, keywords5, styler);
++			case SCE_HPHP_IDENTIFIER:
++				//classifyWordHTPHP(styler.GetStartSegment(), i - 1, keywords5, styler);
++			    classifyWordHTPHP(styler.GetStartSegment(), i - 1, keywordlists, styler);
+ 				break;
+ 			case SCE_H_XCCOMMENT:
+ 				styler.ColourTo(i - 1, state);
+@@ -1852,9 +1859,10 @@
+ 			}
+ 			break;
+ 			///////////// start - PHP state handling
+-		case SCE_HPHP_WORD:
++		case SCE_HPHP_IDENTIFIER:
+ 			if (!IsAWordChar(ch)) {
+-				classifyWordHTPHP(styler.GetStartSegment(), i - 1, keywords5, styler);
++				//classifyWordHTPHP(styler.GetStartSegment(), i - 1, keywords5, styler);
++				classifyWordHTPHP(styler.GetStartSegment(), i - 1, keywordlists, styler);
+ 				if (ch == '/' && chNext == '*') {
+ 					i++;
+ 					state = SCE_HPHP_COMMENT;
+@@ -1984,7 +1992,7 @@
+ 			if (IsADigit(ch) || (ch == '.' && IsADigit(chNext))) {
+ 				state = SCE_HPHP_NUMBER;
+ 			} else if (IsAWordStart(ch)) {
+-				state = SCE_HPHP_WORD;
++				state = SCE_HPHP_IDENTIFIER;
+ 			} else if (ch == '/' && chNext == '*') {
+ 				i++;
+ 				state = SCE_HPHP_COMMENT;
+@@ -2071,8 +2079,9 @@
+ 	case SCE_HP_WORD:
+ 		classifyWordHTPy(styler.GetStartSegment(), lengthDoc - 1, keywords4, styler, prevWord, inScriptType);
+ 		break;
+-	case SCE_HPHP_WORD:
+-		classifyWordHTPHP(styler.GetStartSegment(), lengthDoc - 1, keywords5, styler);
++	case SCE_HPHP_IDENTIFIER:
++		//classifyWordHTPHP(styler.GetStartSegment(), lengthDoc - 1, keywords5, styler);
++		classifyWordHTPHP(styler.GetStartSegment(), lengthDoc - 1, keywordlists, styler);
+ 		break;
+ 	default:
+ 		StateToPrint = statePrintForState(state, inScriptType);
+@@ -2111,7 +2120,10 @@
+ 	"JavaScript keywords",
+ 	"VBScript keywords",
+ 	"Python keywords",
+-	"PHP keywords",
++	"PHP keywords 1",
++	"PHP keywords 2",
++	"PHP keywords 3",
++	"PHP keywords 4",
+ 	"SGML and DTD keywords",
+ 	0,
+ };
+@@ -2121,7 +2133,10 @@
+ 	"", //Unused
+ 	"", //Unused
+ 	"", //Unused
+-	"PHP keywords",
++	"PHP keywords 1",
++	"PHP keywords 2",
++	"PHP keywords 3",
++	"PHP keywords 4",
+ 	"", //Unused
+ 	0,
+ };
+Index: scintilla/win32/makefile
+===================================================================
+--- scintilla/win32/makefile	(版本 42)
++++ scintilla/win32/makefile	(工作副本)
+@@ -19,7 +19,7 @@
+ LDFLAGS=-mwindows -lstdc++ -limm32 -lole32 -luuid -mno-cygwin
+ # Add -MMD to get dependencies
+ INCLUDEDIRS=-I ../include -I ../src
+-CXXBASEFLAGS=-Wall -Wno-missing-braces -Wno-char-subscripts -Wno-strict-overflow -pedantic $(INCLUDEDIRS) -fno-rtti -mno-cygwin
++CXXBASEFLAGS=-Wall -Wno-missing-braces -Wno-char-subscripts -pedantic $(INCLUDEDIRS) -fno-rtti -mno-cygwin
+ 
+ ifdef DEBUG
+ CXXFLAGS=-DDEBUG -g $(CXXBASEFLAGS)
+Index: scite/src/IFaceTable.cxx
+===================================================================
+--- scite/src/IFaceTable.cxx	(版本 42)
++++ scite/src/IFaceTable.cxx	(工作副本)
+@@ -861,7 +861,11 @@
+ 	{"SCE_HPHP_OPERATOR",127},
+ 	{"SCE_HPHP_SIMPLESTRING",120},
+ 	{"SCE_HPHP_VARIABLE",123},
+-	{"SCE_HPHP_WORD",121},
++	{"SCE_HPHP_IDENTIFIER",121},
++	{"SCE_HPHP_WORD1",103},
++	{"SCE_HPHP_WORD2",89},
++	{"SCE_HPHP_WORD3",88},
++	{"SCE_HPHP_WORD4",79},
+ 	{"SCE_HP_CHARACTER",95},
+ 	{"SCE_HP_CLASSNAME",99},
+ 	{"SCE_HP_COMMENTLINE",92},
+@@ -2625,7 +2629,7 @@
+ 
+ enum {
+ 	ifaceFunctionCount = 265,
+-	ifaceConstantCount = 2050,
++	ifaceConstantCount = 2054,
+ 	ifacePropertyCount = 170
+ };
+ 
+Index: scite/src/SciTEBase.h
+===================================================================
+--- scite/src/SciTEBase.h	(版本 42)
++++ scite/src/SciTEBase.h	(工作副本)
+@@ -830,6 +830,7 @@
+ 	const char *GetNextPropItem(const char *pStart, char *pPropItem, int maxLen);
+ 	void ForwardPropertyToEditor(const char *key);
+ 	void DefineMarker(int marker, int markerType, Colour fore, Colour back);
++	void DefineMarkerEx(int marker, int markerType, long fore, long back);
+ 	void ReadAPI(const SString &fileNameForExtension);
+ 	SString FindLanguageProperty(const char *pattern, const char *defaultValue = "");
+ 	virtual void ReadProperties();
+Index: scite/src/SciTEIO.cxx
+===================================================================
+--- scite/src/SciTEIO.cxx	(版本 42)
++++ scite/src/SciTEIO.cxx	(工作副本)
+@@ -338,13 +338,24 @@
+ void SciTEBase::OpenFile(int fileSize, bool suppressMessage) {
+ 	FILE *fp = filePath.Open(fileRead);
+ 	if (fp) {
+-		Utf8_16_Read convert;
++//!-[utf8.auto.check]		Utf8_16_Read convert;
+ 		CurrentBuffer()->SetTimeFromFile();
+ 		wEditor.Call(SCI_BEGINUNDOACTION);	// Group together clear and insert
+ 		wEditor.Call(SCI_CLEARALL);
+ 		char data[blockSize];
+ 		size_t lenFile = fread(data, 1, sizeof(data), fp);
+ 		UniMode codingCookie = CodingCookieValue(data, lenFile);
++
++//!-start-[utf8.auto.check]
++		int check_utf8=props.GetInt("utf8.auto.check");
++		if (codingCookie==uni8Bit && check_utf8==2) {
++			if (Has_UTF8_Char((unsigned char*)(data),lenFile)) {
++				codingCookie=uniCookie;
++			}
++		}
++		Utf8_16_Read convert(codingCookie==uni8Bit && check_utf8==1);
++//!-end-[utf8.auto.check]
++
+ 		wEditor.Call(SCI_ALLOCATE, fileSize + 1000);
+ 		SString languageOverride;
+ 		bool firstBlock = true;
+Index: scite/src/SciTEProps.cxx
+===================================================================
+--- scite/src/SciTEProps.cxx	(版本 42)
++++ scite/src/SciTEProps.cxx	(工作副本)
+@@ -465,6 +465,12 @@
+ 	wEditor.Call(SCI_MARKERSETBACK, marker, back);
+ }
+ 
++void SciTEBase::DefineMarkerEx(int marker, int markerType, long fore, long back) {
++    wEditor.Call(SCI_MARKERDEFINE, marker, markerType);
++    wEditor.Call(SCI_MARKERSETFORE, marker, fore);
++    wEditor.Call(SCI_MARKERSETBACK, marker, back);
++}
++
+ static int FileLength(const char *path) {
+ 	int len = 0;
+ 	FILE *fp = fopen(path, "rb");
+@@ -784,6 +790,7 @@
+ 	CallChildren(SCI_SETMULTIPLESELECTION, props.GetInt("selection.multiple", 1));
+ 	CallChildren(SCI_SETADDITIONALSELECTIONTYPING, props.GetInt("selection.additional.typing", 1));
+ 	CallChildren(SCI_SETADDITIONALCARETSBLINK, props.GetInt("caret.additional.blinks", 1));
++	CallChildren(SCI_SETADDITIONALCARETFORE, ColourOfProperty(props, "caret.additional.fore", ColourRGB(0x33, 0x66, 0xff)));
+ 	CallChildren(SCI_SETVIRTUALSPACEOPTIONS, props.GetInt("virtual.space"));
+ 
+ 	wEditor.Call(SCI_SETMOUSEDWELLTIME,
+@@ -874,26 +881,30 @@
+ 	int selectionAdditionalAlpha = (selectionAlpha == SC_ALPHA_NOALPHA) ? SC_ALPHA_NOALPHA : selectionAlpha / 2;
+ 	CallChildren(SCI_SETADDITIONALSELALPHA, props.GetInt("selection.additional.alpha", selectionAdditionalAlpha));
+ 
+-	SString foldColour = props.Get("fold.margin.colour");
++	//SString foldColour = props.Get("fold.margin.colour");
++	SString foldColour = props.GetExpanded("fold.margin.colour");
+ 	if (foldColour.length()) {
+ 		CallChildren(SCI_SETFOLDMARGINCOLOUR, 1, ColourFromString(foldColour));
+ 	} else {
+ 		CallChildren(SCI_SETFOLDMARGINCOLOUR, 0, 0);
+ 	}
+-	SString foldHiliteColour = props.Get("fold.margin.highlight.colour");
++	//SString foldHiliteColour = props.Get("fold.margin.highlight.colour");
++	SString foldHiliteColour = props.GetExpanded("fold.margin.highlight.colour");
+ 	if (foldHiliteColour.length()) {
+ 		CallChildren(SCI_SETFOLDMARGINHICOLOUR, 1, ColourFromString(foldHiliteColour));
+ 	} else {
+ 		CallChildren(SCI_SETFOLDMARGINHICOLOUR, 0, 0);
+ 	}
+ 
+-	SString whitespaceFore = props.Get("whitespace.fore");
++	//SString whitespaceFore = props.Get("whitespace.fore");
++	SString whitespaceFore = props.GetExpanded("whitespace.fore");
+ 	if (whitespaceFore.length()) {
+ 		CallChildren(SCI_SETWHITESPACEFORE, 1, ColourFromString(whitespaceFore));
+ 	} else {
+ 		CallChildren(SCI_SETWHITESPACEFORE, 0, 0);
+ 	}
+-	SString whitespaceBack = props.Get("whitespace.back");
++	//SString whitespaceBack = props.Get("whitespace.back");
++	SString whitespaceBack = props.GetExpanded("whitespace.back");
+ 	if (whitespaceBack.length()) {
+ 		CallChildren(SCI_SETWHITESPACEBACK, 1, ColourFromString(whitespaceBack));
+ 	} else {
+@@ -1105,52 +1116,49 @@
+ 	wEditor.Call(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS);
+ 	wEditor.Call(SCI_SETMARGINSENSITIVEN, 2, 1);
+ 
++	long symbolsFore, symbolsBack;
++    symbolsFore = ColourOfProperty(props, "fold.symbols.fore", ColourRGB(0x80, 0x80, 0x80));
++    symbolsBack = ColourOfProperty(props, "fold.symbols.back", ColourRGB(0xff, 0xff, 0xff));
+ 	switch (props.GetInt("fold.symbols")) {
+ 	case 0:
+ 		// Arrow pointing right for contracted folders, arrow pointing down for expanded
+-		DefineMarker(SC_MARKNUM_FOLDEROPEN, SC_MARK_ARROWDOWN,
+-		             ColourRGB(0, 0, 0), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDER, SC_MARK_ARROW,
+-		             ColourRGB(0, 0, 0), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDERSUB, SC_MARK_EMPTY,
+-		             ColourRGB(0, 0, 0), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDERTAIL, SC_MARK_EMPTY,
+-		             ColourRGB(0, 0, 0), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDEREND, SC_MARK_EMPTY,
+-		             ColourRGB(0xff, 0xff, 0xff), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDEROPENMID, SC_MARK_EMPTY,
+-		             ColourRGB(0xff, 0xff, 0xff), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_EMPTY, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0, 0, 0));
++		DefineMarkerEx(SC_MARKNUM_FOLDEROPEN, SC_MARK_ARROWDOWN, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDER, SC_MARK_ARROW, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERSUB, SC_MARK_EMPTY, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERTAIL, SC_MARK_EMPTY, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDEREND, SC_MARK_EMPTY, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDEROPENMID, SC_MARK_EMPTY, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_EMPTY, symbolsBack, symbolsFore);
+ 		break;
+ 	case 1:
+ 		// Plus for contracted folders, minus for expanded
+-		DefineMarker(SC_MARKNUM_FOLDEROPEN, SC_MARK_MINUS, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDER, SC_MARK_PLUS, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDERSUB, SC_MARK_EMPTY, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDERTAIL, SC_MARK_EMPTY, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDEREND, SC_MARK_EMPTY, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDEROPENMID, SC_MARK_EMPTY, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0, 0, 0));
+-		DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_EMPTY, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0, 0, 0));
++ 		DefineMarkerEx(SC_MARKNUM_FOLDEROPEN, SC_MARK_MINUS, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDER, SC_MARK_PLUS, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERSUB, SC_MARK_EMPTY, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERTAIL, SC_MARK_EMPTY, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDEREND, SC_MARK_EMPTY, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDEROPENMID, SC_MARK_EMPTY, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_EMPTY, symbolsBack, symbolsFore);
+ 		break;
+ 	case 2:
+ 		// Like a flattened tree control using circular headers and curved joins
+-		DefineMarker(SC_MARKNUM_FOLDEROPEN, SC_MARK_CIRCLEMINUS, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x40, 0x40, 0x40));
+-		DefineMarker(SC_MARKNUM_FOLDER, SC_MARK_CIRCLEPLUS, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x40, 0x40, 0x40));
+-		DefineMarker(SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x40, 0x40, 0x40));
+-		DefineMarker(SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNERCURVE, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x40, 0x40, 0x40));
+-		DefineMarker(SC_MARKNUM_FOLDEREND, SC_MARK_CIRCLEPLUSCONNECTED, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x40, 0x40, 0x40));
+-		DefineMarker(SC_MARKNUM_FOLDEROPENMID, SC_MARK_CIRCLEMINUSCONNECTED, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x40, 0x40, 0x40));
+-		DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNERCURVE, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x40, 0x40, 0x40));
++	    DefineMarkerEx(SC_MARKNUM_FOLDEROPEN, SC_MARK_CIRCLEMINUS, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDER, SC_MARK_CIRCLEPLUS, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNERCURVE, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDEREND, SC_MARK_CIRCLEPLUSCONNECTED, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDEROPENMID, SC_MARK_CIRCLEMINUSCONNECTED, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNERCURVE, symbolsBack, symbolsFore);
+ 		break;
+ 	case 3:
+ 		// Like a flattened tree control using square headers
+-		DefineMarker(SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x80, 0x80, 0x80));
+-		DefineMarker(SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x80, 0x80, 0x80));
+-		DefineMarker(SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x80, 0x80, 0x80));
+-		DefineMarker(SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x80, 0x80, 0x80));
+-		DefineMarker(SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x80, 0x80, 0x80));
+-		DefineMarker(SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x80, 0x80, 0x80));
+-		DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER, ColourRGB(0xff, 0xff, 0xff), ColourRGB(0x80, 0x80, 0x80));
++		DefineMarkerEx(SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED, symbolsBack, symbolsFore);
++ 		DefineMarkerEx(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER, symbolsBack, symbolsFore);
+ 		break;
+ 	}
+ 
+Index: scite/src/Utf8_16.cxx
+===================================================================
+--- scite/src/Utf8_16.cxx	(版本 42)
++++ scite/src/Utf8_16.cxx	(工作副本)
+@@ -35,8 +35,19 @@
+ 	m_pNewBuf = NULL;
+ 	m_bFirstRead = true;
+ 	m_nLen = 0;
++	m_nAutoCheckUtf8 = false;//!-[utf8.auto.check] by default, not auto check utf8 
+ }
+ 
++//!-start-[utf8.auto.check]
++Utf8_16_Read::Utf8_16_Read(bool AutoCheckUtf8) {
++	m_eEncoding = eUnknown;
++	m_nBufSize = 0;
++	m_pNewBuf = NULL;
++	m_bFirstRead = true;
++	m_nAutoCheckUtf8 = AutoCheckUtf8; //by default, not auto check utf8 
++}
++//!-end-[utf8.auto.check]
++
+ Utf8_16_Read::~Utf8_16_Read() {
+ 	if ((m_eEncoding != eUnknown) && (m_eEncoding != eUtf8)) {
+ 		delete [] m_pNewBuf;
+@@ -105,6 +116,15 @@
+ 			m_eEncoding = eUtf8;
+ 			nRet = 3;
+ 		}
++//!-start-[utf8.auto.check]
++		//to support checking utf-8 from raw chars; 
++		else if (m_nLen>2 && m_nAutoCheckUtf8==1 ) {
++			if (Has_UTF8_Char(m_pBuf,m_nLen)) {
++				m_eEncoding = eUtf8;
++				nRet=0;
++			}
++		}
++//!-end-[utf8.auto.check]
+ 	}
+ 
+ 	return nRet;
+@@ -355,3 +375,47 @@
+ 		break;
+ 	}
+ }
++
++/*utf8.auto.check
++check whether a data block contains UTF8 chars*/
++int Has_UTF8_Char(unsigned char *buf,int size) {
++	if (!buf||size<2) {return 0;}
++	unsigned char *p=buf;
++	int i=0,cnt=0;
++	while (p[0] && i<size) {
++		if (p[0]>>7==0x01) {
++			if (p[0]>>5==0x06) {
++				if (p[1]>>6!=0x02) {return 0;} //not utf8
++				cnt++;p++;i++;//UTF-8: U-00000080 ?C U-000007FF
++			}
++			else if (p[0]>>4==0x0e) {
++				if (p[1]>>6!=0x02) 	{return 0;} //not utf8
++				if (p[2]>>6!=0x02) 	{return 0;} //not utf8
++				cnt++;p+=2;i+=2;//UTF-8: U-00000800 ?C U-0000FFFF
++			}
++			else if (p[0]>>3==0x1e) {
++				if (p[1]>>6!=0x02) 	{return 0;} //not utf8
++				if (p[2]>>6!=0x02) 	{return 0;} //not utf8
++				if (p[3]>>6!=0x02) 	{return 0;} //not utf8
++				cnt++;p+=3;i+=3;//UTF-8: U-00010000 ?C U-001FFFFF
++			}
++			else if (p[0]>>2==0x3e) {
++				if (p[1]>>6!=0x02) 	{return 0;} //not utf8
++				if (p[2]>>6!=0x02) 	{return 0;} //not utf8
++				if (p[3]>>6!=0x02) 	{return 0;} //not utf8
++				if (p[4]>>6!=0x02) 	{return 0;} //not utf8
++				cnt++;p+=4;i+=4;//UTF-8: U-00200000 ?C U-03FFFFFF
++			}
++			else if (p[0]>>1==0x7e) {
++				if (p[1]>>6!=0x02) 	{return 0;} //not utf8
++				if (p[2]>>6!=0x02) 	{return 0;} //not utf8
++				if (p[3]>>6!=0x02) 	{return 0;} //not utf8
++				if (p[4]>>6!=0x02) 	{return 0;} //not utf8
++				if (p[5]>>6!=0x02) 	{return 0;} //not utf8
++				cnt++;p+=5;i+=5;//UTF-8: U-04000000 ?C U-7FFFFFFF
++			}
++		}
++		p++;i++;
++	}
++	return cnt>0 ? 1 : 0;
++}
+\ No newline at end of file
+Index: scite/src/Utf8_16.h
+===================================================================
+--- scite/src/Utf8_16.h	(版本 42)
++++ scite/src/Utf8_16.h	(工作副本)
+@@ -101,6 +101,7 @@
+ public:
+ 	Utf8_16_Read();
+ 	~Utf8_16_Read();
++	Utf8_16_Read(bool AutoCheckUtf8); //!-[utf8.auto.check]
+ 
+ 	size_t convert(char* buf, size_t len);
+ 	char* getNewBuf() { return reinterpret_cast<char*>(m_pNewBuf); }
+@@ -116,6 +117,7 @@
+ 	bool m_bFirstRead;
+ 	size_t m_nLen;
+ 	Utf16_Iter m_Iter16;
++	int m_nAutoCheckUtf8;//!-[utf8.auto.check]
+ };
+ 
+ // Read in a UTF-8 buffer and write out to UTF-16 or UTF-8
+@@ -136,3 +138,6 @@
+ 	size_t m_nBufSize;
+ 	bool m_bFirstWrite;
+ };
++
++//utf8.auto.check]
++int Has_UTF8_Char(unsigned char *buf,int size);
+Index: scite/win32/SciTERes.rc
+===================================================================
+--- scite/win32/SciTERes.rc	(版本 42)
++++ scite/win32/SciTERes.rc	(工作副本)
+@@ -189,10 +189,6 @@
+         MENUITEM "Open A&bbreviations File",    IDM_OPENABBREVPROPERTIES
+         MENUITEM "Open Lua Startup Scr&ipt",    IDM_OPENLUAEXTERNALFILE
+         MENUITEM SEPARATOR
+-        POPUP "&Edit Properties"
+-        BEGIN
+-            MENUITEM SEPARATOR
+-        END
+     END
+     POPUP "&Language"
+     BEGIN
+Index: scite/win32/SciTEWin.cxx
+===================================================================
+--- scite/win32/SciTEWin.cxx	(版本 42)
++++ scite/win32/SciTEWin.cxx	(工作副本)
+@@ -234,7 +234,8 @@
+ 
+ 	// Register the frame window
+ 	className = TEXT("SciTEWindow");
+-	wndclass.style = 0;
++	//wndclass.style = 0;
++	wndclass.style = CS_DBLCLKS;	//!-change-[new_on_dbl_clk]
+ 	wndclass.lpfnWndProc = SciTEWin::TWndProc;
+ 	wndclass.cbClsExtra = 0;
+ 	wndclass.cbWndExtra = sizeof(SciTEWin*);
+@@ -1673,7 +1674,8 @@
+ 			return ::DefWindowProc(MainHWND(), iMessage, wParam, lParam);
+ 
+ 		case SCITE_TRAY:
+-			if (lParam == WM_LBUTTONDOWN) {
++			//if (lParam == WM_LBUTTONDOWN) {
++			if (lParam == WM_LBUTTONDBLCLK) {
+ 				RestoreFromTray();
+ 				::ShowWindow(MainHWND(), SW_RESTORE);
+ 				::FlashWindow(MainHWND(), FALSE);
+@@ -1693,6 +1695,11 @@
+ 				}
+ 			}
+ 			break;
++		//!-start-[new_on_dbl_clk]
++		case WM_LBUTTONDBLCLK:
++			::SendMessage(MainHWND(), WM_COMMAND, IDM_NEW, 0);
++			return 0;
++		//!-end-[new_on_dbl_clk]
+ 
+ 		case WM_NOTIFY:
+ 			Notify(reinterpret_cast<SCNotification *>(lParam));
+Index: scite/win32/SciTEWinBar.cxx
+===================================================================
+--- scite/win32/SciTEWinBar.cxx	(版本 42)
++++ scite/win32/SciTEWinBar.cxx	(工作副本)
+@@ -731,7 +731,7 @@
+ 	}
+ 
+ 	switch (iMessage) {
+-
++	case WM_LBUTTONDBLCLK:	//!-add-[close_on_dbl_clk]
+ 	case WM_MBUTTONDOWN: {
+ 			// Check if on tab bar
+ 			GUI::Point pt = PointFromLong(lParam);

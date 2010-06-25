@@ -1,0 +1,122 @@
+Index: scite/src/SciTE.h
+===================================================================
+--- scite/src/SciTE.h	(版本 42)
++++ scite/src/SciTE.h	(工作副本)
+@@ -46,7 +46,7 @@
+ 
+ #define MRU_START	17
+ #define IMPORT_START 20
+-#define TOOLS_START 3
++#define TOOLS_START 4 //!-[change TOOLS_START]
+ 
+ // Edit
+ #define IDM_UNDO			201
+Index: scite/src/SciTEBase.cxx
+===================================================================
+--- scite/src/SciTEBase.cxx	(版本 44)
++++ scite/src/SciTEBase.cxx	(工作副本)
+@@ -4408,19 +4408,20 @@
+ 		AddToPopUp("Hide", IDM_TOGGLEOUTPUT, true);
+ 	} else {
+ 		AddToPopUp("Close", IDM_CLOSE, true);
+-	}
+-	SString userContextMenu = props.GetNewExpand("user.context.menu");
+-	userContextMenu.substitute('|', '\0');
+-	const char *userContextItem = userContextMenu.c_str();
+-	const char *endDefinition = userContextItem + userContextMenu.length();
+-	while (userContextItem < endDefinition) {
+-		const char *caption = userContextItem;
+-		userContextItem += strlen(userContextItem) + 1;
+-		if (userContextItem < endDefinition) {
+-			int cmd = GetMenuCommandAsInt(userContextItem);
++		//!-[changed popup menu] 
++		SString userContextMenu = props.GetNewExpand("user.context.menu");
++		userContextMenu.substitute('|', '\0');
++		const char *userContextItem = userContextMenu.c_str();
++		const char *endDefinition = userContextItem + userContextMenu.length();
++		while (userContextItem < endDefinition) {
++			const char *caption = userContextItem;
+ 			userContextItem += strlen(userContextItem) + 1;
+-			AddToPopUp(caption, cmd);
+-		}
++			if (userContextItem < endDefinition) {
++				int cmd = GetMenuCommandAsInt(userContextItem);
++				userContextItem += strlen(userContextItem) + 1;
++				AddToPopUp(caption, cmd);
++			}
++		}//!-[changed popup menu]
+ 	}
+ 	popup.Show(pt, wCmd);
+ }
+Index: scite/src/SciTEBase.h
+===================================================================
+--- scite/src/SciTEBase.h	(版本 43)
++++ scite/src/SciTEBase.h	(工作副本)
+@@ -456,7 +456,8 @@
+ 	bool isReadOnly;
+ 	bool openFilesHere;
+ 	bool fullScreen;
+-	enum { toolMax = 50 };
++	//enum { toolMax = 50 };
++	enum { toolMax = 99 };//!-[change toolMax]
+ 	Extension *extender;
+ 	bool needReadProperties;
+ 
+Index: scite/src/SciTEBuffers.cxx
+===================================================================
+--- scite/src/SciTEBuffers.cxx	(版本 42)
++++ scite/src/SciTEBuffers.cxx	(工作副本)
+@@ -1117,7 +1117,7 @@
+ }
+ 
+ void SciTEBase::SetMenuItemLocalised(int menuNumber, int position, int itemID,
+-        const char *text, const char *mnemonic) {
++        const char *text = NULL, const char *mnemonic = NULL) {
+ 	GUI::gui_string localised = localiser.Text(text);
+ 	SetMenuItem(menuNumber, position, itemID, localised.c_str(), GUI::StringFromUTF8(mnemonic).c_str());
+ }
+@@ -1127,13 +1127,14 @@
+ 	//command.0.*.py="c:\program files\python\pythonwin\pythonwin" /edit c:\coloreditor.py
+ 	RemoveToolsMenu();
+ 	int menuPos = TOOLS_START;
++	bool addedSeparator = false;
+ 	for (int item = 0; item < toolMax; item++) {
+-		int itemID = IDM_TOOLS + item;
+ 		SString prefix = "command.name.";
+-		prefix += SString(item);
+-		prefix += ".";
++		prefix += SString(item); 
++		prefix +=  ".";
+ 		SString commandName = props.GetNewExpand(prefix.c_str(), FileNameExt().AsUTF8().c_str());
+ 		if (commandName.length()) {
++			int itemID = IDM_TOOLS + item;
+ 			SString sMenuItem = commandName;
+ 			prefix = "command.shortcut.";
+ 			prefix += SString(item);
+@@ -1143,6 +1144,13 @@
+ 				sMnemonic += "Ctrl+";
+ 				sMnemonic += SString(item);
+ 			}
++
++			if (!addedSeparator) {
++				SetMenuItemLocalised(menuTools, menuPos, MF_SEPARATOR);
++				addedSeparator = true;
++				menuPos++;
++			}
++
+ 			SetMenuItemLocalised(menuTools, menuPos, itemID, sMenuItem.c_str(),
+ 				sMnemonic[0] ? sMnemonic.c_str() : NULL);
+ 			menuPos++;
+Index: scite/win32/SciTEWinBar.cxx
+===================================================================
+--- scite/win32/SciTEWinBar.cxx	(版本 46)
++++ scite/win32/SciTEWinBar.cxx	(工作副本)
+@@ -127,6 +127,8 @@
+ 			popup.CreatePopUp();
+ 			AddToPopUp("Close", IDM_CLOSE, true);
+ 			AddToPopUp("");
++			AddToPopUp("New", IDM_NEW, true);
++			AddToPopUp("");
+ 			AddToPopUp("Save", IDM_SAVE, true);
+ 			AddToPopUp("Save As", IDM_SAVEAS, true);
+ 			AddToPopUp("");
