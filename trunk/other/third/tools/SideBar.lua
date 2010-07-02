@@ -19,16 +19,21 @@ version 1.10.3
     sidebar.functions.flags=1
     sidebar.functions.params=1
 --]]--------------------------------------------------n
+-- you can choose to make it a stand-alone window; just uncomment this line:
+-- local win = true
+-- local _DEBUG = true 
+
 require 'lpeg'
 require 'gui'
 require 'shell'
-
--- you can choose to make it a stand-alone window; just uncomment this line:
--- local win = true
-
--- local _DEBUG = true 
 local _show_flags = tonumber(props['sidebar.functions.flags']) == 1
 local _show_params = tonumber(props['sidebar.functions.params']) == 1
+
+--全局 abbrev list
+local abbrev_list = {}
+--全局tree nodes
+local tree_nodes  = {}
+local file_mask = '*.*'
 
 local tab_index = 0
 local panel_width = 200
@@ -38,16 +43,15 @@ if win_height == '' then win_height = 600 end
 local style   = props['style.*.32']
 local foreground = props['sidebar.foreground'];
 local background = props['sidebar.background'];
-if not background then
+if background == '' then
     background = style:match('back:(#%x%x%x%x%x%x)')
 end
-if background then
-    if not foreground then
+if background ~= '' then
+    if foreground == '' then
         foreground = style:match('fore:(#%x%x%x%x%x%x)')
     end
 	if foreground == nil then foreground = '' end
 end
-
 ----------------------------------------------------------
 -- Common functions
 ----------------------------------------------------------
@@ -157,15 +161,13 @@ tab0:context_menu {
 }
 -------------------------
 local tab1 = gui.panel(panel_width + 18)
-local memo_proj_path = gui.memo()
-tab1:add(memo_proj_path, "top", 23)
-
-local list_project = gui.list()
+local list_project = gui.tree(true)
 tab1:client(list_project)
-if background then list_project:set_list_colour(foreground,background) end
+--if background then list_project:set_tree_colour(foreground,background) end
 
 tab1:context_menu {
     'Open Dir As Project|Open_Project_Dir',
+    'Refresh...|Project_Refresh_Tree',
     '',
     'SVN Update ↓|SVN_Update',
     'SVN Commit ↑|SVN_Commit',
@@ -182,6 +184,12 @@ list_abbrev:add_column("Abbrev", 60)
 list_abbrev:add_column("Expansion", 600)
 tab2:client(list_abbrev)
 if background then list_abbrev:set_list_colour(foreground,background) end
+
+tab2:context_menu {
+    'Edit Abbrev|Edit_Abbrev_File',
+    '',
+    'Hide SideBar|SideBar_ShowHide',
+}
 
 -------------------------
 local win_parent
@@ -215,7 +223,6 @@ end
 -- tab0:memo_path   Path and Mask
 ----------------------------------------------------------
 local current_path = ''
-local file_mask = '*.*'
 local project_path  = ''
 local cur_proj_path = ''
 
@@ -224,12 +231,6 @@ local function FileMan_ShowPath()
 	local path = '\\cf1'..current_path:gsub('\\', '\\\\')
 	local mask = '\\cf2'..file_mask..'}'
 	memo_path:set_text(rtf..path..mask)
-end
-
-local function Project_ShowPath()
-	local rtf = [[{\rtf\ansi\ansicpg1251{\fonttbl{\f0\fcharset65001 Arial;}}{\colortbl;\red0\green0\blue0;}\f0\fs16]]
-	local path = '\\cf1'..cur_proj_path:gsub('\\', '\\\\')
-	memo_proj_path:set_text(rtf..path)
 end
 
 ----------------------------------------------------------
@@ -243,7 +244,9 @@ local function FileMan_ListFILL()
 	list_dir:add_item ('[..]', {'..','d'})
     
 	for i, d in ipairs(folders) do
-		list_dir:add_item(d .. '', {d,'d'})
+		if d ~='.svn' then -- escape SVN folder
+			list_dir:add_item(d .. '', {d,'d'})
+		end
 	end
 	local files = gui.files(current_path..file_mask)
 	if files then
@@ -362,54 +365,6 @@ local function FileMan_FileExecWithSciTE(cmd, mode)
 	props["command.mode.0.*"] = p1
 end
 
-function FileMan_FileExec(params)
-	if params == nil then params = '' end
-	local filename = FileMan_GetSelectedItem()
-	if filename == '' then return end
-	local file_ext = filename:match("[^.]+$")
-	if file_ext == nil then return end
-	file_ext = '%*%.'..string.lower(file_ext)
-	local cmd = ''
-	local function CommandBuild(lng)
-		local cmd = props['command.build.$(file.patterns.'..lng..')']
-		cmd = cmd:gsub(props["FilePath"], current_path..filename)
-		return cmd
-	end
-	-- Lua
-	if string.match(props['file.patterns.lua'], file_ext) ~= nil then
-		dostring(params)
-		dofile(current_path..filename)
-	-- Batch
-	elseif string.match(props['file.patterns.batch'], file_ext) ~= nil then
-		FileMan_FileExecWithSciTE(CommandBuild('batch'))
-		return
-	-- WSH
-	elseif string.match(props['file.patterns.wscript']..props['file.patterns.wsh'], file_ext) ~= nil then
-		FileMan_FileExecWithSciTE(CommandBuild('wscript'))
-	-- Other
-	else
-		local ret, descr = shell.exec(current_path..filename..params)
-		if not ret then
-			print (">Exec: "..filename)
-			print ("Error: "..descr)
-		end
-	end
-end
-
-function FileMan_FileExecWithParams()
-	if scite.ShowParametersDialog('Exec "'..FileMan_GetSelectedItem()..'". Please set params:') then
-		local params = ''
-		for p = 1, 4 do
-			local ps = props[tostring(p)]
-			if ps ~= '' then
-				params = params..' '..ps
-			end
-		end
-		FileMan_FileExec(params)
-	end
-end
-
-
 local function FileMan_OpenItem()
 	local dir_or_file, attr = FileMan_GetSelectedItem()
 	if dir_or_file == '' then return end
@@ -445,97 +400,61 @@ list_dir:on_key(function(key)
 	end
 end)
 
--------------------------------------
---  Project functions 
--------------------------------------
+----------------------------------
+-- Project Functions
+----------------------------------
 
-local function Project_ListFILL()
-	if project_path == '' then return end
-    if cur_proj_path == '' then cur_proj_path = project_path end
-	local folders = gui.files(cur_proj_path..'*', true)
-	if not folders then return end
-	list_project:clear()
-    --this_path = string.gsub(cur_proj_path,project_path,localhost)
-    if cur_proj_path ~= project_path then
-        list_project:add_item ('[..]', {'..','d'})
-    end
-	for i, d in ipairs(folders) do
-		list_project:add_item(d .. '', {d,'d'})
-	end
-    folders = nil
-	local files = gui.files(cur_proj_path..file_mask)
-	if files then
-		for i, filename in ipairs(files) do
-			list_project:add_item(filename .. '', {filename,'f'})
+function Project_Fill_Tree(node,path)
+	if path == '' then return end
+	if tree_nodes[node] == nil then
+		--path = path:gsub('\\','\\\\');
+		if node==0 then
+			--add_tree(int parent,string caption,bool hasChildren,mixed data)
+			node = list_project:add_tree(node,path,true,{path,'d'})
+			tree_nodes[0] = true
+			tree_nodes['root'] = node
 		end
-        files = nil
-	end
-	--list_project:set_selected_item(0)
-    Project_ShowPath()
-end
-
-local function Project_GetSelectedItem()
-	local idx = list_project:get_selected_item()
-	if idx == -1 then return '' end
-	local data = list_project:get_item_data(idx)
-	local dir_or_file = data[1]
-	local attr = data[2]
-    local parent = data[3]
-	return dir_or_file, attr, parent
-end
-
-local function Project_OpenItem()
-	local dir_or_file, attr, parent = Project_GetSelectedItem()
-	if dir_or_file == '' then return end
-    --print(parent)
-	if attr == 'd' then
-		gui.chdir(dir_or_file)
-		if dir_or_file == '..' then
-			local new_path = cur_proj_path:gsub('(.*\\).*\\$', '%1')
-			if not gui.files(new_path..'*',true) then return end
-			cur_proj_path = new_path
-		else
-			cur_proj_path = cur_proj_path..dir_or_file..'\\'
+		local folders = gui.files(path..'/*', true)
+		if folders then
+			for i, d in ipairs(folders) do
+				if d ~= '.svn' then -- escape SVN folder
+					list_project:add_tree(node,d,true,{path.."/"..d,'d'})
+				end
+			end
+			folders = nil
+			tree_nodes[node] = true
 		end
-		Project_ListFILL()
-	else
-		OpenFile(cur_proj_path..dir_or_file)
+		local files = gui.files(path..'/'..file_mask)
+		if files then
+			for i, filename in ipairs(files) do
+				list_project:add_tree(node,filename,false,{path.."/"..filename,'f'})
+			end
+			files = nil
+			tree_nodes[node] = true
+		end
+		list_project:expand(tree_nodes['root'],true)
 	end
 end
 
-list_project:on_double_click(function()
-	Project_OpenItem()
-end)
-
-list_project:on_key(function(key)
-	if key == 13 then -- Enter
-		Project_OpenItem()
-	elseif key == 8 then -- BackSpace
-        --if project_path == cur_proj_path then end
-		list_project:set_selected_item(0)
-		Project_OpenItem()
-    end
-end)
+function Project_Tree_Clear()
+	list_project:clear_tree()
+	tree_nodes = {}
+end
 
 function Open_Project_Dir()
     local Path = gui.select_dir_dlg('Please select a directory')
 	if Path == nil then return end
-	if Path:match('[\\/]$') then
-		project_path = Path
-	else
-		project_path = Path .. '\\'
-	end
-    cur_proj_path = project_path
-    Project_Save_Path()
+    Project_Save_Path(Path)
+	Project_Tree_Clear()
+	Project_Fill_Tree(0,Path)
 end
 
-function Project_Save_Path()
-    if project_path =='' then end
+function Project_Save_Path(path)
+    if path =='' then end
     local file = io.open(props["SciteUserHome"] .."\\SciTE.project","w")
     if(file ~= nil) then
-        file:write(project_path)
+        file:write(path)
         file:close() 
-        Project_ListFILL()
     end
 end
 
@@ -544,39 +463,79 @@ function Project_Get_Store_Path()
     if(file ~= nil) then
         local ourline = file:read() 
         if ourline ~=nil then 
-            project_path =  ourline
-            Project_ListFILL()
+			return ourline
         end
         file:close()
     end
+	return ''
+end
+
+function Project_Refresh_Tree()
+	Project_Tree_Clear()
+	Project_Fill_Tree(0,Project_Get_Store_Path())
+end
+
+function Project_GetSelectedItem()
+	local data = list_project:get_tree_data()
+	local dir_or_file = data[1]
+	local attr = data[2]
+	return dir_or_file, attr
 end
 
 function SVN_Update()
     local dir_or_file, attr = Project_GetSelectedItem()
-    if dir_or_file ~= '..' then
-        local path = project_path .. dir_or_file
-        local command = "\""..props['TortoiseSVNPath'].."\\TortoiseProc.exe\" /command:update /path:\""..path.."\" /notempfile /closeonend:0"
-        shell.exec(command)
+    if dir_or_file ~= nil then
+		svn_exec('update',dir_or_file)
     end
 end
 
 function SVN_Commit()
     local dir_or_file, attr = Project_GetSelectedItem()
-    if dir_or_file ~= '..' then
-        local path = project_path .. dir_or_file
-        local command = "\""..props['TortoiseSVNPath'].."\\TortoiseProc.exe\" /command:commit /path:\""..path.."\" /notempfile /closeonend:0"
-        shell.exec(command)
+    if dir_or_file ~= nil then
+		svn_exec('commit',dir_or_file)
     end
 end
 
 function SVN_Add()
     local dir_or_file, attr = Project_GetSelectedItem()
-    if dir_or_file ~= '..' then
-        local path = project_path .. dir_or_file
-        local command = "\""..props['TortoiseSVNPath'].."\\TortoiseProc.exe\" /command:add /path:\""..path.."\" /notempfile /closeonend:0"
-        shell.exec(command)
+    if dir_or_file ~= nil then
+		svn_exec('add',dir_or_file)
     end
 end
+
+-----------------------------
+-- Project Events
+-----------------------------
+
+--~ list_project:on_select(function(item)
+--~ 	print('onselect:'..list_project:get_tree_data(item)[1])
+--~ end)
+
+list_project:on_double_click(function(item)
+	local data = list_project:get_tree_data(item)
+	if data[2] == 'f' then
+		OpenFile(data[1])
+	else
+		Project_Fill_Tree(item,data[1])
+	end
+end)
+
+list_project:on_key(function(key)
+	if key==13 then
+		local item = list_project:get_selected_tree()
+		local data = list_project:get_tree_data()
+		if data[2] == 'f' then
+			OpenFile(data[1])
+		else
+			--to do something with dir
+			Project_Fill_Tree(item,data[1])
+			list_project:toggle()
+		end
+	elseif key==17 then
+		local item = list_project:get_tree_parent()
+		list_project:toggle(item)
+	end
+end)
 
 ----------------------------------------------------------
 -- tab0:list_functions   Functions/Procedures
@@ -995,7 +954,7 @@ local function Functions_GetNames()
 end
 
 local function Functions_ListFILL()
-	if tonumber(props['sidebar.show'])~=1 or (tab_index~=1 and tab_index~=0) then return end
+	if tonumber(props['sidebar.show'])~=1 or tab_index~=0 then return end
 	if _sort == 'order' then
 		table.sort(table_functions, function(a, b) return a[2] < b[2] end)
 	else
@@ -1091,10 +1050,11 @@ local function Abbreviations_ListFILL()
 					local _abr, _exp = line:match('^([^#].-)=(.+)')
 					if _abr ~= nil then
 						list_abbrev:add_item({_abr, _exp}, {_abr, _exp})
+						abbrev_list[_abr] = _exp 
 					else
 						local import_file = line:match('^import%s+(.+)')
 						if import_file ~= nil then
-							ReadAbbrev(file:match('.+\\')..import_file)
+							ReadAbbrev(file:match('.+[\\/]')..import_file)
 						end
 					end
 				end
@@ -1103,7 +1063,8 @@ local function Abbreviations_ListFILL()
 		end
 	end
 	list_abbrev:clear()
-	local abbrev_filename = props['SciteDefaultHome'] .. "/lang/" .. props['FileExt'] .."/".. props['FileExt']  ..".abbrev"
+	--local abbrev_filename = props['SciteDefaultHome'] .. '/abbrevs/' .. props['FileExt'] .. '.abbrev'
+	local abbrev_filename = props['AbbrevPath']
 	ReadAbbrev(abbrev_filename)
 end
 
@@ -1112,8 +1073,10 @@ local function Abbreviations_InsertExpansion()
 	local sel_item = list_abbrev:get_selected_item()
 	if sel_item == -1 then return end
 	local abbrev = list_abbrev:get_item_data(sel_item)
+	editor:BeginUndoAction()
 	editor:AddText(abbrev[1])
-	scite.MenuCommand(IDM_ABBREV)	
+	scite.MenuCommand(IDM_ABBREV)
+	editor:EndUndoAction()
 	gui.pass_focus()
 	editor:CallTipCancel()
 end
@@ -1121,8 +1084,8 @@ end
 local function Abbreviations_ShowExpansion()
 	local sel_item = list_abbrev:get_selected_item()
 	if sel_item == -1 then return end
-	local abbrev = list_abbrev:get_item_data(sel_item)
-    expansion = abbrev[2]
+	local list = list_abbrev:get_item_data(sel_item)
+	local expansion = list[2]
 	expansion = expansion:gsub('\\\\','\4'):gsub('\\r','\r'):gsub('(\\n','\n'):gsub('\\t','\t'):gsub('\4','\\')
 	editor:CallTipCancel()
 	editor:CallTipShow(editor.CurrentPos, expansion)
@@ -1158,7 +1121,7 @@ local function OnSwitch()
         Functions_GetNames()
 		Functions_ListFILL()
 	elseif tab1:bounds() then -- visible Project
-		Project_Get_Store_Path()
+	    Project_Fill_Tree(0,Project_Get_Store_Path())
     elseif tab2:bounds() then -- visible Abbrev
 		Abbreviations_ListFILL()
 	end
@@ -1193,8 +1156,12 @@ function SideBar_ShowHide()
 	end
 end
 
+function Edit_Abbrev_File()
+    scite.Open(props['SciteDefaultHome'] .. '/abbrevs/' .. props['FileExt'] .. '.abbrev')
+end
+
 local function OnDocumentCountLinesChanged(def_line_count)
-	if tab1:bounds() then -- visible Function
+	if tab0:bounds() then -- visible Function
 		local cur_line = editor:LineFromPosition(editor.CurrentPos)
 		for i = 1, #table_functions do
 			local table_line = table_functions[i][2]
