@@ -5,9 +5,9 @@ sibebar的相关配置均在Commands.properties文件中。
 
 = Details =
 
-*sidebar.show=0  # Set show(1) or hide(0) to SciTE start
-*sidebar.dock=0 # Set whether sidebar auto docking
-*sidebar.position=right
-*sidebar.foreground=#000000 # sidebar color
-*sidebar.background=#FFFFFF
-*project.opendir.buildtags=1 # Project build tags
+ * sidebar.show=0  # Set show(1) or hide(0) to SciTE start
+ * sidebar.dock=0 # Set whether sidebar auto docking
+ * sidebar.position=right
+ * sidebar.foreground=#000000 # sidebar color
+ * sidebar.background=#FFFFFF
+ * project.opendir.buildtags=1 # Project build tags
