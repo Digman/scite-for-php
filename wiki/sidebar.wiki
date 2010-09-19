@@ -5,22 +5,9 @@ sibebar的相关配置均在Commands.properties文件中。
 
 = Details =
 
-# Set show(1) or hide(0) to SciTE start
-sidebar.show=0
-# Set whether sidebar auto docking
-sidebar.dock=0
-sidebar.position=right
-# sidebar color
-sidebar.foreground=#000000
-sidebar.background=#FFFFFF
-#CN_SIDEBAR=9
-command.checked.9.*=$(sidebar.show)
-command.name.9.*=SideBar
-command.9.*=SideBar_ShowHide
-command.mode.9.*=subsystem:lua,savebefore:no
-command.shortcut.9.*=Alt+C
-# Set default settings for Functions/Procedures List
-sidebar.functions.flags=0
-sidebar.functions.params=0
-# Project build tags
-project.opendir.buildtags=1
+*sidebar.show=0  # Set show(1) or hide(0) to SciTE start
+*sidebar.dock=0 # Set whether sidebar auto docking
+*sidebar.position=right
+*sidebar.foreground=#000000 # sidebar color
+*sidebar.background=#FFFFFF
+*project.opendir.buildtags=1 # Project build tags
