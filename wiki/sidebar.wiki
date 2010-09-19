@@ -5,7 +5,22 @@ sibebar的相关配置均在Commands.properties文件中。
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+# Set show(1) or hide(0) to SciTE start
+sidebar.show=0
+# Set whether sidebar auto docking
+sidebar.dock=0
+sidebar.position=right
+# sidebar color
+sidebar.foreground=#000000
+sidebar.background=#FFFFFF
+#CN_SIDEBAR=9
+command.checked.9.*=$(sidebar.show)
+command.name.9.*=SideBar
+command.9.*=SideBar_ShowHide
+command.mode.9.*=subsystem:lua,savebefore:no
+command.shortcut.9.*=Alt+C
+# Set default settings for Functions/Procedures List
+sidebar.functions.flags=0
+sidebar.functions.params=0
+# Project build tags
+project.opendir.buildtags=1
