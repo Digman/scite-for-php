@@ -1,0 +1,63 @@
+==========2010/08/06=============
+changed command.quiet
+修改的文件：
+scite/src/JobQueue.h
+scite/src/SciTEBase.cxx
+scite/src/SciTEBuffers.cxx
+scite/win32/SciTEWin.cxx
+修改配置命令command.quiet.X.*，其值可以是 0-4
+0,1：保持原有的设置效果
+2：  output输出时只显示结果不显示命令信息
+3：  不显示output栏，手动打开时可以查看执行的命令信息
+4：  不显示output栏无任何输出信息
+
+==========2010/08/03=============
+added new.buffer.in.utf8
+scite/src/SciTEBuffers.cxx   line:  652
+增加新建文档时是否将编码设置为utf8(65001)
+在属性文件里配置 new.buffer.in.utf8=1 时生效
+
+==========2010/08/02=============
+added code.page.name props
+scite/src/SciTEBase.cxx      line: 2761
+状态栏增加页面编码名称显示属性, 在属性文件的状态栏里配置$(code.page.name)即可
+$(CodePage)显示当前buffer设置的编码(数字)
+
+added OnStatusBarClick event
+修改的文件：
+scite/src/Extender.h
+scite/src/LuaExtension.cxx
+scite/src/LuaExtension.h
+scite/src/MultiplexExtension.cxx
+scite/src/MultiplexExtension.h
+scite/win32/SciTEWinBar.cxx
+scite/win32/SingleThreadExtension.cxx
+scite/win32/SingleThreadExtension.h
+增加状态栏单击事件,在lua中使用方法如下：OnStatusBarClick(part) 
+part是状态栏被单击部分的索引值
+
+===========2010/08/01============
+Changed AddCharUTF function [added notifyChar]
+It should not call 'OnChar' function when in IME status
+修改的文件：
+src/Editor.cxx
+src/ScintillaBase.cxx
+src/ScintillaBase.h
+win32/ScintillaWin.cxx
+在输入法输入状态下禁用了出发Onchar事件，避免输入中文时产生异常
+
+==========2010/07/29=============
+added SetBookmark onmarginclick
+scite/src/SciTEBase.cxx      line: 4293
+scite/src/SciTEProps.cxx     line: 1118
+单击书签栏是否设置书签
+在属性配置文件里设置 margin.click.bookmark=1 生效
+
+==========2010/07/25=============
+Added convert.indent before saved
+scite/src/SciTEIO.cxx       line：813
+保存时是否转换为一致的缩进符，与tabsize,use.tabs配置相关联
+在属性配置文件里设置 save.convert.indent=1 生效
+
+==========2010/07/5=============
+增加OnMenuCommand扩展事件
