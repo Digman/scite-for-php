@@ -1,9 +1,0 @@
-ic=#include <|>
-ie=#include "|"
-id=#ifndef |\n#define \n\n#endif\n
-if=if (|) {\n    \n}
-else=else {\n    |\n}
-for=for (|) {\n    |\n}
-while=while (|) {\n    \n}
-f=|() {\n    \n}
-cc=const char *|

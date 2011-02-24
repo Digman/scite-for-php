@@ -1,5 +1,0 @@
-Windows Registry Editor Version 5.00
-
-[HKEY_CLASSES_ROOT\*\Shell\SciTE]
-[HKEY_CLASSES_ROOT\*\Shell\SciTE\Command]
-@="\"E:\\green\\scite\\scite.exe\" \"%1\""

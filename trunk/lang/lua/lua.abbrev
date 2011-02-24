@@ -1,8 +1,0 @@
-if=if | then\n    \nend
-ie=if | then\n    \nelse\n    \nend
-elseif=elseif | then\n    
-else=else\n    |\nend
-while=while | do\n    \nend
-repeat=repeat\n    \nuntil |
-for=for | do\n    \nend
-fcn=function |()\n    \nend

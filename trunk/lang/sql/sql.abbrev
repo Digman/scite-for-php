@@ -1,1 +1,0 @@
-t=CREATE TABLE `|` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  \n  PRIMARY KEY (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8;

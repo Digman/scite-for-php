@@ -1,2 +1,0 @@
-fread(void *ptr, size_t size, size_t nmemb, FILE *fp)size_t 从文件读数据到缓冲区
-printf(const char* fmt, ...)int 打印字符串到标准输出

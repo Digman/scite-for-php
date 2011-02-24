@@ -1,4 +1,0 @@
-render_to_response(str s)HttpResponse 直接渲染的响应
-request.GET.get(str key, default)mixed 返回GET变量
-request.POST.get(str key, default)mixed 返回POST变量
-request.session.get(str key, default)mixed 返回session变量
